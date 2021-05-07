@@ -10,7 +10,7 @@ Shell scripts made simple
 
 ## Example
 
-Make a file `example.zxpy`
+Make a file `example.zxpy` (The extension can be anything)
 
 ```python
 #! /usr/bin/env zxpy
@@ -25,6 +25,8 @@ print(file_count)
 Output:
 
 ```bash
+$ chmod +x ./example.zxpy
+
 $ ./example.zxpy
 Hello world!
 File count is:
