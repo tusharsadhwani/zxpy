@@ -1,6 +1,8 @@
 # zxpy
 
-Shell scripts made simple
+Shell scripts made simple 🐚
+
+Inspired by Google's [zx](https://github.com/google/zx), but made much simpler and more accessible using Python.
 
 ## Installation
 
@@ -43,10 +45,8 @@ for filename in test_files.splitlines():
         output = ~f'python {filename}'  # variables in your shell commands :D
         assert output == ''
         print('Test passed!')
-    except AssertionError:
+    except:
         print(f'Test failed.')
-    except ModuleNotFoundError:
-        print(f'Unable to import file')
 ```
 
 Output:

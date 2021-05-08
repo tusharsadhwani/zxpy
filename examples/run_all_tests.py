@@ -7,7 +7,5 @@ for filename in test_files.splitlines():
         output = ~f'python {filename}'  # variables in your shell commands :D
         assert output == ''
         print('Test passed!')
-    except AssertionError:
+    except:
         print(f'Test failed.')
-    except ModuleNotFoundError:
-        print(f'Unable to import file')
