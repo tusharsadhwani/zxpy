@@ -17,9 +17,7 @@ Make a file `script.py` (The name and extension can be anything):
 ~'echo Hello world!'
 
 file_count = ~'ls -1 | wc -l'
-
-~"echo 'file count is:'"
-print(file_count)
+print("file count is:", file_count)
 ```
 
 Output:
@@ -29,8 +27,7 @@ $ chmod +x ./script.py
 
 $ ./script.py
 Hello world!
-File count is:
-3
+file count is: 3
 ```
 
 A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
