@@ -2,15 +2,13 @@
 
 Shell scripts made simple
 
-> Note: Work in progress. Most of the functionality will be added pretty soon
-
 ## Installation
 
 `pip install zxpy`
 
 ## Example
 
-Make a file `script.py` (The name and extension can be anything)
+Make a file `script.py` (The name and extension can be anything):
 
 ```python
 #! /usr/bin/env zxpy
@@ -30,5 +28,37 @@ $ chmod +x ./script.py
 $ ./script.py
 Hello world!
 File count is:
-9
+3
 ```
+
+A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
+
+```python
+#! /usr/bin/env zxpy
+import sys
+sys.path.append('./tests')
+
+test_files = ~"find -name '*_test\.py'"
+
+for filename in test_files.splitlines():
+    try:
+        print(f'Running {filename:.<50}', end='')
+        output = ~f'python {filename}'  # variables in your shell commands :D
+        assert output == ''
+        print('Test passed!')
+    except AssertionError:
+        print(f'Test failed.')
+    except ModuleNotFoundError:
+        print(f'Unable to import file')
+```
+
+Output:
+
+```bash
+$ ./run_all_tests.py
+Running ./tests/python_version_test.py....................Test failed.
+Running ./tests/platform_test.py..........................Test passed!
+Running ./tests/imports_test.py...........................Test passed!
+```
+
+Examples are all in the [examples folder](./examples).
