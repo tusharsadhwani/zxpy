@@ -28,7 +28,7 @@ class BashCaller(ast.NodeTransformer):
         if not isinstance(expr.value.op, ast.Invert):
             return expr
 
-        if not isinstance(expr.value.operand, ast.Str):
+        if not isinstance(expr.value.operand, (ast.Str, ast.JoinedStr)):
             return expr
 
         expr.value = ast.Call(
