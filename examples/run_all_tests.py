@@ -1,7 +1,4 @@
 #! /usr/bin/env zxpy
-import sys
-sys.path.append('./tests')
-
 test_files = ~"find -name '*_test\.py'"
 
 for filename in test_files.splitlines():
