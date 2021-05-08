@@ -3,8 +3,6 @@ import ast
 import subprocess
 import sys
 
-import astpretty
-
 
 def cli() -> None:
     filenames = sys.argv[1:]
