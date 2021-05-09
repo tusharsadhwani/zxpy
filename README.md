@@ -20,7 +20,7 @@ file_count = ~'ls -1 | wc -l'
 print("file count is:", file_count)
 ```
 
-Output:
+And then run it:
 
 ```bash
 $ chmod +x ./script.py
