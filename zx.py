@@ -20,20 +20,17 @@ def run_shell(command: str) -> str:
 class BashCaller(ast.NodeTransformer):
     @staticmethod
     def modify_expr(expr: ast.Expr) -> ast.Expr:
-        if not isinstance(expr.value, ast.UnaryOp):
-            return expr
+        if (
+            isinstance(expr.value, ast.UnaryOp)
+            and isinstance(expr.value.op, ast.Invert)
+            and isinstance(expr.value.operand, (ast.Str, ast.JoinedStr))
+        ):
+            expr.value = ast.Call(
+                func=ast.Name(id='run_shell', ctx=ast.Load()),
+                args=[expr.value.operand],
+                keywords=[]
+            )
 
-        if not isinstance(expr.value.op, ast.Invert):
-            return expr
-
-        if not isinstance(expr.value.operand, (ast.Str, ast.JoinedStr)):
-            return expr
-
-        expr.value = ast.Call(
-            func=ast.Name(id='run_shell', ctx=ast.Load()),
-            args=[expr.value.operand],
-            keywords=[]
-        )
         return expr
 
     def visit_Expr(self, expr: ast.Expr) -> ast.Expr:
