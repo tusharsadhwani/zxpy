@@ -5,6 +5,13 @@ import sys
 
 
 def cli() -> None:
+    """
+    Simple CLI interface.
+
+    Example:
+
+        zxpy script.py
+    """
     filenames = sys.argv[1:]
     for filename in filenames:
         with open(filename) as file:
@@ -17,7 +24,8 @@ def run_shell(command: str) -> str:
     return output
 
 
-class BashCaller(ast.NodeTransformer):
+class ShellRunner(ast.NodeTransformer):
+    """Replaces the ~'...' syntax with run_shell(...)"""
     @staticmethod
     def modify_expr(expr: ast.Expr) -> ast.Expr:
         if (
@@ -45,28 +53,31 @@ class BashCaller(ast.NodeTransformer):
 
 
 def run_zxpy(filename: str, module: ast.Module) -> None:
-    transformer = BashCaller()
-    transformer.visit(module)
+    shell_runner = ShellRunner()
+    shell_runner.visit(module)
 
     for statement in module.body:
-        if isinstance(statement, ast.Expr):
-            expr = statement.value
-            if not isinstance(expr, ast.Call):
-                continue
+        if not isinstance(statement, ast.Expr):
+            continue
 
-            if not isinstance(expr.func, ast.Name):
-                continue
-
-            if not expr.func.id == 'run_shell':
-                continue
-
-            new_expr = ast.Call(
-                func=ast.Name(id='print', ctx=ast.Load()),
-                args=[expr],
-                keywords=[],
-            )
-            statement.value = new_expr
+        print_shell_outputs(statement)
 
     ast.fix_missing_locations(module)
 
     exec(compile(module, filename, mode='exec'))
+
+
+def print_shell_outputs(expr_statement: ast.Expr) -> None:
+    """Wrap every top level run_shell call with print() to get output"""
+    expr = expr_statement.value
+    if (
+        isinstance(expr, ast.Call)
+        and isinstance(expr.func, ast.Name)
+        and expr.func.id == 'run_shell'
+    ):
+        new_expr = ast.Call(
+            func=ast.Name(id='print', ctx=ast.Load()),
+            args=[expr],
+            keywords=[],
+        )
+        expr_statement.value = new_expr
