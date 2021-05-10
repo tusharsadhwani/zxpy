@@ -27,7 +27,7 @@ import readline
 import subprocess
 import sys
 import traceback
-from typing import Union
+from typing import Optional, Union
 
 
 def cli() -> None:
@@ -54,10 +54,26 @@ def cli() -> None:
             run_zxpy(filename, module)
 
 
-def run_shell(command: str) -> str:
+def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     """This is indirectly run when doing ~'...'"""
-    output = subprocess.getoutput(command)
-    return output
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True
+    )
+    assert process.stdout is not None
+
+    output = b''
+
+    while char := process.stdout.read(1):
+        if print_it:
+            sys.stdout.buffer.write(char)
+            sys.stdout.flush()
+        else:
+            output += char
+
+    return None if print_it else output.decode()
 
 
 def run_zxpy(filename: str, module: ast.Module) -> None:
@@ -116,12 +132,12 @@ def print_shell_outputs(expr_statement: ast.Expr) -> None:
         and isinstance(expr.func, ast.Name)
         and expr.func.id == 'run_shell'
     ):
-        new_expr = ast.Call(
-            func=ast.Name(id='print', ctx=ast.Load()),
-            args=[expr],
-            keywords=[],
-        )
-        expr_statement.value = new_expr
+        expr.keywords = [
+            ast.keyword(
+                arg='print_it',
+                value=ast.Constant(value=True),
+            )
+        ]
 
 
 def setup_zxpy_repl() -> None:
