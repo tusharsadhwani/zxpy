@@ -30,6 +30,8 @@ Hello world!
 file count is: 3
 ```
 
+> Run `>>> help('zxpy')` in Python REPL to find out more ways to use zxpy.
+
 A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
 
 ```python
@@ -56,3 +58,29 @@ Running ./tests/imports_test.py...........................Test passed!
 ```
 
 Examples are all in the [examples folder](./examples).
+
+## Interactive mode
+
+```pycon
+$ zxpy
+zxpy shell
+Python 3.8.5 (default, Jan 27 2021, 15:41:15)
+[GCC 9.3.0]
+
+>>> ~"ls | grep '\.py'"
+__main__.py
+setup.py
+zx.py
+>>>
+```
+
+> Also works with `path/to/python -m zx`
+
+It can also be used to start a zxpy session in an already running REPL.
+Simply do:
+
+```pycon
+>>> import zx; zx.start()
+```
+
+and zxpy should be enabled in the existing session.
