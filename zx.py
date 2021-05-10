@@ -64,16 +64,15 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     )
     assert process.stdout is not None
 
-    output = b''
+    if not print_it:
+        return process.stdout.read().decode()
 
     while char := process.stdout.read(1):
         if print_it:
             sys.stdout.buffer.write(char)
             sys.stdout.flush()
-        else:
-            output += char
 
-    return None if print_it else output.decode()
+    return None
 
 
 def run_zxpy(filename: str, module: ast.Module) -> None:
