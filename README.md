@@ -4,9 +4,37 @@ Shell scripts made simple 🐚
 
 Inspired by Google's [zx](https://github.com/google/zx), but made much simpler and more accessible using Python.
 
-## Installation
+## Rationale
 
-`pip install zxpy`
+Bash is cool, and it's extremely powerful when paired with linux coreutils and pipes. But apart from that, it's a whole another language to learn, and has a (comparatively) unintuitive syntax for things like conditionals and loops.
+
+`zxpy` aims to supercharge bash by allowing you to write scripts in Python, but with native support for bash commands and pipes:
+
+```python
+#! /usr/bin/env zxpy
+todo_comments = ~"git grep -n TODO"
+for todo in todo_comments.splitlines():
+    file, lineno, code = todo.split(':', 2)
+    *_, comment = code.partition('TODO')
+    print(f"TODO: {file} on line {lineno}: {comment.lstrip(': ')}")
+```
+
+Running this, we get:
+
+```console
+$ ./todo_check.py
+TODO: instachat/lib/models/message.dart on line 7: rename to uuid
+TODO: instachat/lib/models/update.dart on line 13: make int
+TODO: instachat/lib/services/chat_service.dart on line 211: error handling
+TODO: server/api/api.go on line 94: move these to /chat/@:address
+TODO: server/api/user.go on line 80: check for errors instead of relying on zero value
+```
+
+## Installation <a href="https://pypi.org/project/zxpy"><img src="https://img.shields.io/badge/pypi-zxpy-blue?style=flat"></a>  
+
+```console
+pip install zxpy
+```
 
 ## Example
 
