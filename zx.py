@@ -22,8 +22,9 @@ the shebang:
 script. Note that this requires you to have zxpy installed globally.
 """
 import ast
-import subprocess
+import code
 import readline
+import subprocess
 import sys
 import traceback
 from typing import Union
@@ -146,13 +147,26 @@ def start() -> None:
 
     and zxpy should be enabled in the REPL.
     """
+    # For tab completion and arrow key support
     readline.parse_and_bind("tab: complete")
 
+    command = ''
+    continued_command = False
     while True:
-        prompt = '>>> '
-
         try:
-            command_string = input(prompt)
+            if continued_command:
+                command += '\n'
+            else:
+                command = ''
+
+            prompt = '... ' if continued_command else '>>> '
+            new_input = input(prompt)
+
+            if new_input != '':
+                command += new_input
+            else:
+                continued_command = False
+
         except KeyboardInterrupt:
             print()
             continue
@@ -160,20 +174,33 @@ def start() -> None:
             print()
             sys.exit(0)
 
-        ast_obj = ast.parse(command_string, '<input>', 'single')
+        if continued_command:
+            continue
+
+        try:
+            ast_obj = ast.parse(command, '<input>', 'single')
+        except SyntaxError:
+            try:
+                code_obj = code.compile_command(command)
+                if code_obj is None:
+                    continued_command = True
+                    continue
+
+            except BaseException:
+                traceback.print_exc()
+                continue
+
         assert isinstance(ast_obj, ast.Interactive)
         patch_shell_commands(ast_obj)
 
-        if ast_obj is not None:
-            try:
-                code_obj = compile(ast_obj, '<input>', 'single')
-                exec(code_obj)
-            except SystemExit as e:
-                sys.exit(e.code)
-            except BaseException:
-                traceback.print_exc()
-
-        prompt = '... ' if ast_obj is None else '>>> '
+        try:
+            code_obj = compile(ast_obj, '<input>', 'single')
+            assert code_obj is not None
+            exec(code_obj)
+        except SystemExit as e:
+            sys.exit(e.code)
+        except BaseException:
+            traceback.print_exc()
 
 
 if __name__ == '__main__':
