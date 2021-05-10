@@ -92,8 +92,6 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
     attr_transformer.visit(module)
 
     for statement in module.body:
-        if not isinstance(statement, ast.Expr):
-            continue
         print_shell_outputs(statement)
 
     ast.fix_missing_locations(module)
@@ -147,9 +145,16 @@ class NestedShellRunner(ast.NodeTransformer):
         return attr
 
 
-def print_shell_outputs(expr_statement: ast.Expr) -> None:
+def print_shell_outputs(statement: ast.stmt) -> None:
     """Set print_it to True on every top level run_shell"""
-    expr = expr_statement.value
+    if isinstance(statement, ast.FunctionDef):
+        for substatement in statement.body:
+            print_shell_outputs(substatement)
+
+    if not isinstance(statement, ast.Expr):
+        return
+
+    expr = statement.value
     if (
         isinstance(expr, ast.Call)
         and isinstance(expr.func, ast.Name)

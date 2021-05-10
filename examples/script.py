@@ -1,7 +1,12 @@
 #! /usr/bin/env zxpy
 ~'echo Hello world!'
 
-file_count = ~'ls -1 | wc -l'
 
-~"echo 'file count is:'"
-print(file_count)
+def print_file_count():
+    file_count = ~'ls -1 | wc -l'
+
+    ~"echo 'file count is:'"
+    print(file_count)
+
+
+print_file_count()
