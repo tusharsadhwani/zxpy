@@ -170,6 +170,7 @@ def start() -> None:
         except KeyboardInterrupt:
             print()
             continue
+
         except EOFError:
             print()
             sys.exit(0)
@@ -197,8 +198,10 @@ def start() -> None:
             code_obj = compile(ast_obj, '<input>', 'single')
             assert code_obj is not None
             exec(code_obj)
+
         except SystemExit as e:
             sys.exit(e.code)
+
         except BaseException:
             traceback.print_exc()
 
