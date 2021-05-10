@@ -8,9 +8,9 @@ def cli() -> None:
     """
     Simple CLI interface.
 
-    Example:
+    To run script(s):
 
-        zxpy script.py
+        zxpy script.py [...]
     """
     filenames = sys.argv[1:]
     for filename in filenames:
@@ -20,8 +20,25 @@ def cli() -> None:
 
 
 def run_shell(command: str) -> str:
+    """This is indirectly run when doing ~'...'"""
     output = subprocess.getoutput(command)
     return output
+
+
+def run_zxpy(filename: str, module: ast.Module) -> None:
+    """Runs zxpy on a given file"""
+    shell_runner = ShellRunner()
+    shell_runner.visit(module)
+
+    for statement in module.body:
+        if not isinstance(statement, ast.Expr):
+            continue
+
+        print_shell_outputs(statement)
+
+    ast.fix_missing_locations(module)
+
+    exec(compile(module, filename, mode='exec'))
 
 
 class ShellRunner(ast.NodeTransformer):
@@ -49,22 +66,8 @@ class ShellRunner(ast.NodeTransformer):
             expr = ast.Expr(assign.value)
             new_expr = self.modify_expr(expr)
             assign.value = new_expr.value
+
         return assign
-
-
-def run_zxpy(filename: str, module: ast.Module) -> None:
-    shell_runner = ShellRunner()
-    shell_runner.visit(module)
-
-    for statement in module.body:
-        if not isinstance(statement, ast.Expr):
-            continue
-
-        print_shell_outputs(statement)
-
-    ast.fix_missing_locations(module)
-
-    exec(compile(module, filename, mode='exec'))
 
 
 def print_shell_outputs(expr_statement: ast.Expr) -> None:
