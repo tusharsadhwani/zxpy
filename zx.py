@@ -67,10 +67,13 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     if not print_it:
         return process.stdout.read().decode()
 
-    while char := process.stdout.read(1):
-        if print_it:
-            sys.stdout.buffer.write(char)
-            sys.stdout.flush()
+    while True:
+        char = process.stdout.read(1)
+        if not char:
+            break
+
+        sys.stdout.buffer.write(char)
+        sys.stdout.flush()
 
     return None
 
