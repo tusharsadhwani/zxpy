@@ -124,7 +124,7 @@ class ShellRunner(ast.NodeTransformer):
 
 
 def print_shell_outputs(expr_statement: ast.Expr) -> None:
-    """Wrap every top level run_shell call with print() to get output"""
+    """Set print_it to True on every top level run_shell"""
     expr = expr_statement.value
     if (
         isinstance(expr, ast.Call)
