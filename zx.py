@@ -1,7 +1,32 @@
-"""zxpy: Shell scripts made simple"""
+"""
+zxpy: Shell scripts made simple
+
+To run script(s):
+
+    zxpy script.py
+
+To start a REPL:
+
+    zxpy
+
+If you haven't installed zxpy globally, you can run it by doing:
+
+    path/to/python -m zx [...]
+
+zxpy files can also be executed directly on a POSIX system by adding
+the shebang:
+
+    #! /use/bin/env zxpy
+
+...to the top of your file, and executing it directly like a shell
+script. Note that this requires you to have zxpy installed globally.
+"""
 import ast
 import subprocess
+import readline
 import sys
+import traceback
+from typing import Union
 
 
 def cli() -> None:
@@ -10,9 +35,18 @@ def cli() -> None:
 
     To run script(s):
 
-        zxpy script.py [...]
+        zxpy script.py
+
+    To start a REPL:
+
+        zxpy
     """
     filenames = sys.argv[1:]
+
+    if not filenames:
+        start_zxpy_repl()
+        return
+
     for filename in filenames:
         with open(filename) as file:
             module = ast.parse(file.read())
@@ -27,18 +61,21 @@ def run_shell(command: str) -> str:
 
 def run_zxpy(filename: str, module: ast.Module) -> None:
     """Runs zxpy on a given file"""
+    patch_shell_commands(module)
+    exec(compile(module, filename, mode='exec'))
+
+
+def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
+    """Patches the ast module to add zxpy functionality"""
     shell_runner = ShellRunner()
     shell_runner.visit(module)
 
     for statement in module.body:
         if not isinstance(statement, ast.Expr):
             continue
-
         print_shell_outputs(statement)
 
     ast.fix_missing_locations(module)
-
-    exec(compile(module, filename, mode='exec'))
 
 
 class ShellRunner(ast.NodeTransformer):
@@ -84,3 +121,47 @@ def print_shell_outputs(expr_statement: ast.Expr) -> None:
             keywords=[],
         )
         expr_statement.value = new_expr
+
+
+def start_zxpy_repl() -> None:
+    """
+    Starts a zxpy interactive session.
+    It's like the Python REPL, but supports zxpy features.
+    """
+    print("zxpy shell")
+    print("Python", sys.version)
+    print()
+
+    # For tab completion and arrow key support
+    readline.parse_and_bind("tab: complete")
+
+    while True:
+        prompt = '>>> '
+
+        try:
+            command_string = input(prompt)
+        except KeyboardInterrupt:
+            print()
+            continue
+        except EOFError:
+            print()
+            sys.exit(0)
+
+        ast_obj = ast.parse(command_string, '<input>', 'single')
+        assert isinstance(ast_obj, ast.Interactive)
+        patch_shell_commands(ast_obj)
+
+        if ast_obj is not None:
+            try:
+                code_obj = compile(ast_obj, '<input>', 'single')
+                exec(code_obj)
+            except SystemExit as e:
+                sys.exit(e.code)
+            except BaseException:
+                traceback.print_exc()
+
+        prompt = '... ' if ast_obj is None else '>>> '
+
+
+if __name__ == '__main__':
+    cli()
