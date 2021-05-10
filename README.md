@@ -31,7 +31,7 @@ server/api/api.go                        on line 94  : move these to /chat/@:add
 server/api/user.go                       on line 80  : check for errors instead of relying on zero value
 ```
 
-## Installation <a href="https://pypi.org/project/zxpy"><img src="https://img.shields.io/badge/pypi-zxpy-blue?style=flat"></a>  
+## Installation <a href="https://pypi.org/project/zxpy"><img src="https://img.shields.io/badge/pypi-zxpy-blue?style=flat"></a>
 
 ```console
 pip install zxpy
@@ -65,9 +65,9 @@ A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
 
 ```python
 #! /usr/bin/env zxpy
-test_files = ~"find -name '*_test\.py'"
+test_files = (~"find -name '*_test\.py'").splitlines()
 
-for filename in test_files.splitlines():
+for filename in test_files:
     try:
         print(f'Running {filename:.<50}', end='')
         output = ~f'python {filename}'  # variables in your shell commands :D

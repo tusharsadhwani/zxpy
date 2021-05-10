@@ -88,6 +88,8 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
     """Patches the ast module to add zxpy functionality"""
     shell_runner = ShellRunner()
     shell_runner.visit(module)
+    attr_transformer = NestedShellRunner()
+    attr_transformer.visit(module)
 
     for statement in module.body:
         if not isinstance(statement, ast.Expr):
@@ -100,7 +102,7 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
 class ShellRunner(ast.NodeTransformer):
     """Replaces the ~'...' syntax with run_shell(...)"""
     @staticmethod
-    def modify_expr(expr: ast.Expr) -> ast.Expr:
+    def modify_expr(expr: ast.Expr) -> None:
         if (
             isinstance(expr.value, ast.UnaryOp)
             and isinstance(expr.value.op, ast.Invert)
@@ -112,18 +114,37 @@ class ShellRunner(ast.NodeTransformer):
                 keywords=[]
             )
 
-        return expr
-
     def visit_Expr(self, expr: ast.Expr) -> ast.Expr:
-        return self.modify_expr(expr)
+        self.modify_expr(expr)
+        return expr
 
     def visit_Assign(self, assign: ast.Assign) -> ast.Assign:
         if isinstance(assign.value, ast.expr):
             expr = ast.Expr(assign.value)
-            new_expr = self.modify_expr(expr)
-            assign.value = new_expr.value
+            self.modify_expr(expr)
+            assign.value = expr.value
 
         return assign
+
+
+class NestedShellRunner(ast.NodeTransformer):
+    """Allows embedding ~'...' calls into other expressions, like methods"""
+    @staticmethod
+    def modify_attr(attr: ast.Attribute) -> None:
+        if (
+            isinstance(attr.value, ast.UnaryOp)
+            and isinstance(attr.value.op, ast.Invert)
+            and isinstance(attr.value.operand, ast.Constant)
+        ):
+            attr.value = ast.Call(
+                func=ast.Name(id='run_shell', ctx=ast.Load()),
+                args=[attr.value.operand],
+                keywords=[]
+            )
+
+    def visit_Attribute(self, attr: ast.Attribute) -> ast.Attribute:
+        self.modify_attr(attr)
+        return attr
 
 
 def print_shell_outputs(expr_statement: ast.Expr) -> None:
