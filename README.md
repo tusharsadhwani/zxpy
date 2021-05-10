@@ -14,20 +14,21 @@ Bash is cool, and it's extremely powerful when paired with linux coreutils and p
 #! /usr/bin/env zxpy
 todo_comments = ~"git grep -n TODO"
 for todo in todo_comments.splitlines():
-    file, lineno, code = todo.split(':', 2)
+    filename, lineno, code = todo.split(':', 2)
     *_, comment = code.partition('TODO')
-    print(f"TODO: {file} on line {lineno}: {comment.lstrip(': ')}")
+    print(f"{filename:<40} on line {lineno:<4}: {comment.lstrip(': ')}")
 ```
 
 Running this, we get:
 
 ```console
 $ ./todo_check.py
-TODO: instachat/lib/models/message.dart on line 7: rename to uuid
-TODO: instachat/lib/models/update.dart on line 13: make int
-TODO: instachat/lib/services/chat_service.dart on line 211: error handling
-TODO: server/api/api.go on line 94: move these to /chat/@:address
-TODO: server/api/user.go on line 80: check for errors instead of relying on zero value
+README.md                                on line 154 : move this content somewhere more sensible.
+instachat/lib/models/message.dart        on line 7   : rename to uuid
+instachat/lib/models/update.dart         on line 13  : make int
+instachat/lib/services/chat_service.dart on line 211 : error handling
+server/api/api.go                        on line 94  : move these to /chat/@:address
+server/api/user.go                       on line 80  : check for errors instead of relying on zero value
 ```
 
 ## Installation <a href="https://pypi.org/project/zxpy"><img src="https://img.shields.io/badge/pypi-zxpy-blue?style=flat"></a>  
