@@ -1,0 +1,2 @@
+import zx
+zx.cli()
