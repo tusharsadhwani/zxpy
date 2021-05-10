@@ -44,7 +44,7 @@ def cli() -> None:
     filenames = sys.argv[1:]
 
     if not filenames:
-        start_zxpy_repl()
+        setup_zxpy_repl()
         return
 
     for filename in filenames:
@@ -123,16 +123,29 @@ def print_shell_outputs(expr_statement: ast.Expr) -> None:
         expr_statement.value = new_expr
 
 
-def start_zxpy_repl() -> None:
+def setup_zxpy_repl() -> None:
     """
-    Starts a zxpy interactive session.
-    It's like the Python REPL, but supports zxpy features.
+    Sets up a zxpy interactive session.
     """
     print("zxpy shell")
     print("Python", sys.version)
     print()
 
-    # For tab completion and arrow key support
+    start()
+
+
+def start() -> None:
+    """
+    It's like the Python REPL, but supports zxpy features.
+    Starts the zxpy REPL.
+
+    Useful for setting up a zxpy session in an already running REPL.
+    Simply do:
+
+        >>> import zx; zx.start()
+
+    and zxpy should be enabled in the REPL.
+    """
     readline.parse_and_bind("tab: complete")
 
     while True:
