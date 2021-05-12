@@ -23,6 +23,7 @@ script. Note that this requires you to have zxpy installed globally.
 """
 import ast
 import code
+import inspect
 import readline
 import subprocess
 import sys
@@ -191,6 +192,13 @@ def start() -> None:
 
     and zxpy should be enabled in the REPL.
     """
+    # Get locals from parent frame
+    frames = inspect.getouterframes(inspect.currentframe())
+    if len(frames) > 1:
+        parent_frame = frames[1]
+        parent_locals = parent_frame.frame.f_locals
+        locals().update(parent_locals)
+
     # For tab completion and arrow key support
     readline.parse_and_bind("tab: complete")
 
