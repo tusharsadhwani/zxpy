@@ -59,7 +59,7 @@ Hello world!
 file count is: 3
 ```
 
-> Run `>>> help('zxpy')` in Python REPL to find out more ways to use zxpy.
+> Run `>>> help('zx')` in Python REPL to find out more ways to use zxpy.
 
 A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
 
