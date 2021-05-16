@@ -133,7 +133,7 @@ class NestedShellRunner(ast.NodeTransformer):
         if (
             isinstance(attr.value, ast.UnaryOp)
             and isinstance(attr.value.op, ast.Invert)
-            and isinstance(attr.value.operand, (ast.Constant, ast.Str, ast.JoinedStr))
+            and isinstance(attr.value.operand, (ast.Constant, ast.JoinedStr))
         ):
             attr.value = ast.Call(
                 func=ast.Name(id='run_shell', ctx=ast.Load()),
