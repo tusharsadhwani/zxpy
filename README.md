@@ -109,7 +109,7 @@ It can also be used to start a zxpy session in an already running REPL.
 Simply do:
 
 ```pycon
->>> import zx; zx.start()
+>>> import zx; zx.install()
 ```
 
 and zxpy should be enabled in the existing session.

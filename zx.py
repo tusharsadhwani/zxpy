@@ -177,18 +177,17 @@ def setup_zxpy_repl() -> None:
     print("Python", sys.version)
     print()
 
-    start()
+    install()
 
 
-def start() -> None:
+def install() -> None:
     """
-    It's like the Python REPL, but supports zxpy features.
-    Starts the zxpy REPL.
+    Starts an interactive shell that looks like the REPL, but with zxpy features.
 
     Useful for setting up a zxpy session in an already running REPL.
     Simply do:
 
-        >>> import zx; zx.start()
+        >>> import zx; zx.install()
 
     and zxpy should be enabled in the REPL.
     """
