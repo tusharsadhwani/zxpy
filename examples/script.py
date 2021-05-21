@@ -5,7 +5,7 @@
 def print_file_count():
     file_count = ~'ls -1 | wc -l'
 
-    ~"echo 'file count is:'"
+    ~"echo -n 'file count is: '"
     print(file_count)
 
 
