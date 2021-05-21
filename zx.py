@@ -89,8 +89,6 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
     """Patches the ast module to add zxpy functionality"""
     shell_runner = ShellRunner()
     shell_runner.visit(module)
-    attr_transformer = NestedShellRunner()
-    attr_transformer.visit(module)
 
     for statement in module.body:
         print_shell_outputs(statement)
@@ -101,48 +99,40 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
 class ShellRunner(ast.NodeTransformer):
     """Replaces the ~'...' syntax with run_shell(...)"""
     @staticmethod
-    def modify_expr(expr: ast.Expr) -> None:
+    def modify_expr(expr: ast.expr) -> ast.expr:
         if (
-            isinstance(expr.value, ast.UnaryOp)
-            and isinstance(expr.value.op, ast.Invert)
-            and isinstance(expr.value.operand, (ast.Str, ast.JoinedStr))
+            isinstance(expr, ast.UnaryOp)
+            and isinstance(expr.op, ast.Invert)
+            and isinstance(expr.operand, (ast.Str, ast.JoinedStr))
         ):
-            expr.value = ast.Call(
+            return ast.Call(
                 func=ast.Name(id='run_shell', ctx=ast.Load()),
-                args=[expr.value.operand],
+                args=[expr.operand],
                 keywords=[]
             )
 
+        return expr
+
     def visit_Expr(self, expr: ast.Expr) -> ast.Expr:
-        self.modify_expr(expr)
+        expr.value = self.modify_expr(expr.value)
+        super().generic_visit(expr)
         return expr
 
     def visit_Assign(self, assign: ast.Assign) -> ast.Assign:
-        if isinstance(assign.value, ast.expr):
-            expr = ast.Expr(assign.value)
-            self.modify_expr(expr)
-            assign.value = expr.value
-
+        assign.value = self.modify_expr(assign.value)
+        super().generic_visit(assign)
         return assign
 
+    def visit_Call(self, call: ast.Call) -> ast.Call:
+        for index, arg in enumerate(call.args):
+            call.args[index] = self.modify_expr(arg)
 
-class NestedShellRunner(ast.NodeTransformer):
-    """Allows embedding ~'...' calls into other expressions, like methods"""
-    @staticmethod
-    def modify_attr(attr: ast.Attribute) -> None:
-        if (
-            isinstance(attr.value, ast.UnaryOp)
-            and isinstance(attr.value.op, ast.Invert)
-            and isinstance(attr.value.operand, (ast.Constant, ast.JoinedStr))
-        ):
-            attr.value = ast.Call(
-                func=ast.Name(id='run_shell', ctx=ast.Load()),
-                args=[attr.value.operand],
-                keywords=[]
-            )
+        super().generic_visit(call)
+        return call
 
     def visit_Attribute(self, attr: ast.Attribute) -> ast.Attribute:
-        self.modify_attr(attr)
+        attr.value = self.modify_expr(attr.value)
+        super().generic_visit(attr)
         return attr
 
 
