@@ -43,8 +43,10 @@ def cli() -> None:
 
         zxpy
     """
-    filenames = sys.argv[1:]
+    # Remove zxpy executable from argv
+    sys.argv = sys.argv[1:]
 
+    filenames = sys.argv
     if not filenames:
         setup_zxpy_repl()
         return
