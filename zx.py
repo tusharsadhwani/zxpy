@@ -81,6 +81,23 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     return None
 
 
+def run_shell_alternate(command: str) -> Optional[str]:
+    """Like run_shell but returns 3 values: stdout, stderr and return code"""
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True
+    )
+    assert process.stdout is not None
+
+    return (
+        process.stdout.read().decode(),
+        process.stderr.read().decode(),
+        process.returncode,
+    )
+
+
 def run_zxpy(filename: str, module: ast.Module) -> None:
     """Runs zxpy on a given file"""
     patch_shell_commands(module)
@@ -101,16 +118,25 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
 class ShellRunner(ast.NodeTransformer):
     """Replaces the ~'...' syntax with run_shell(...)"""
     @staticmethod
-    def modify_expr(expr: ast.expr) -> ast.expr:
+    def modify_expr(
+            expr: ast.expr,
+            return_stderr_and_returncode: bool = False,
+    ) -> ast.expr:
         if (
             isinstance(expr, ast.UnaryOp)
             and isinstance(expr.op, ast.Invert)
             and isinstance(expr.operand, (ast.Str, ast.JoinedStr))
         ):
+            function_name = (
+                'run_shell_alternate'
+                if return_stderr_and_returncode
+                else 'run_shell'
+            )
+
             return ast.Call(
-                func=ast.Name(id='run_shell', ctx=ast.Load()),
+                func=ast.Name(id=function_name, ctx=ast.Load()),
                 args=[expr.operand],
-                keywords=[]
+                keywords=[],
             )
 
         return expr
@@ -121,7 +147,9 @@ class ShellRunner(ast.NodeTransformer):
         return expr
 
     def visit_Assign(self, assign: ast.Assign) -> ast.Assign:
-        assign.value = self.modify_expr(assign.value)
+        return_stderr_and_returncode = len(assign.targets) > 1
+        assign.value = self.modify_expr(assign.value, return_stderr_and_returncode)
+
         super().generic_visit(assign)
         return assign
 
