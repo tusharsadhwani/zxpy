@@ -27,7 +27,7 @@ import inspect
 import subprocess
 import sys
 import traceback
-from typing import Literal, Optional, Union, overload
+from typing import Literal, Optional, Tuple, Union, overload
 
 
 def cli() -> None:
@@ -88,15 +88,18 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     return None
 
 
-def run_shell_alternate(command: str) -> Optional[str]:
+def run_shell_alternate(command: str) -> Tuple[str, str, int]:
     """Like run_shell but returns 3 values: stdout, stderr and return code"""
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        shell=True
+        shell=True,
     )
+    process.wait()
     assert process.stdout is not None
+    assert process.stderr is not None
+    assert process.returncode is not None
 
     return (
         process.stdout.read().decode(),
@@ -154,8 +157,10 @@ class ShellRunner(ast.NodeTransformer):
         return expr
 
     def visit_Assign(self, assign: ast.Assign) -> ast.Assign:
-        return_stderr_and_returncode = len(assign.targets) > 1
-        assign.value = self.modify_expr(assign.value, return_stderr_and_returncode)
+        assign.value = self.modify_expr(
+            assign.value,
+            return_stderr_and_returncode=isinstance(assign.targets[0], ast.Tuple),
+        )
 
         super().generic_visit(assign)
         return assign
