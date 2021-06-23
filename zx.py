@@ -24,11 +24,10 @@ script. Note that this requires you to have zxpy installed globally.
 import ast
 import code
 import inspect
-import readline
 import subprocess
 import sys
 import traceback
-from typing import Optional, Union
+from typing import Literal, Optional, Union, overload
 
 
 def cli() -> None:
@@ -55,6 +54,14 @@ def cli() -> None:
         with open(filename) as file:
             module = ast.parse(file.read())
             run_zxpy(filename, module)
+
+
+@overload
+def run_shell(command: str) -> str: ...
+@overload
+def run_shell(command: str, print_it: Literal[False]) -> str: ...
+@overload
+def run_shell(command: str, print_it: Literal[True]) -> None: ...
 
 
 def run_shell(command: str, print_it: bool = False) -> Optional[str]:
@@ -189,7 +196,9 @@ def install() -> None:
         locals().update(parent_locals)
 
     # For tab completion and arrow key support
-    readline.parse_and_bind("tab: complete")
+    if sys.platform != 'win32':
+        import readline
+        readline.parse_and_bind("tab: complete")
 
     command = ''
     continued_command = False

@@ -113,3 +113,16 @@ Simply do:
 ```
 
 and zxpy should be enabled in the existing session.
+
+## Development/Testing
+
+To install from source, clone the repo, and do the following:
+
+```bash
+$ source ./venv/bin/activate  # Always use a virtualenv!
+$ pip install -r requirements-dev.txt
+Processing ./zxpy
+[...]
+Successfully installed zxpy-1.X.X
+$ pytest ./tests  # runs tests
+```
