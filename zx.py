@@ -27,7 +27,7 @@ import inspect
 import subprocess
 import sys
 import traceback
-from typing import Optional, Union
+from typing import Literal, Optional, Union, overload
 
 
 def cli() -> None:
@@ -54,6 +54,14 @@ def cli() -> None:
         with open(filename) as file:
             module = ast.parse(file.read())
             run_zxpy(filename, module)
+
+
+@overload
+def run_shell(command: str) -> str: ...
+@overload
+def run_shell(command: str, print_it: Literal[False]) -> str: ...
+@overload
+def run_shell(command: str, print_it: Literal[True]) -> None: ...
 
 
 def run_shell(command: str, print_it: bool = False) -> Optional[str]:
