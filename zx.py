@@ -24,7 +24,6 @@ script. Note that this requires you to have zxpy installed globally.
 import ast
 import code
 import inspect
-import readline
 import subprocess
 import sys
 import traceback
@@ -189,7 +188,9 @@ def install() -> None:
         locals().update(parent_locals)
 
     # For tab completion and arrow key support
-    readline.parse_and_bind("tab: complete")
+    if sys.platform != 'win32':
+        import readline
+        readline.parse_and_bind("tab: complete")
 
     command = ''
     continued_command = False
