@@ -162,9 +162,7 @@ def print_shell_outputs(statement: ast.stmt) -> None:
 
 
 def setup_zxpy_repl() -> None:
-    """
-    Sets up a zxpy interactive session.
-    """
+    """Sets up a zxpy interactive session"""
     print("zxpy shell")
     print("Python", sys.version)
     print()
