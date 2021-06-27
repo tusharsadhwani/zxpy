@@ -88,6 +88,22 @@ Running ./tests/imports_test.py...........................Test passed!
 
 Examples are all in the [examples folder](./examples).
 
+## `stderr` and return codes
+
+To get `stderr` and return code information out of the shell command, there is an
+alternative way of invoking the shell.
+
+To use it, just use **3 variables** on the
+left side of your `~'...'` shell string:
+
+```python
+stdout, stderr, return_code = ~'echo hi'
+print(stdout)       # hi
+print(return_code)  # 0
+```
+
+More examples are in the [examples folder](./examples).
+
 ## Interactive mode
 
 ```pycon
