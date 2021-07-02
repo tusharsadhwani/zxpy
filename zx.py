@@ -25,6 +25,7 @@ import ast
 import code
 import inspect
 import subprocess
+import shlex
 import sys
 import traceback
 from typing import Literal, Optional, Tuple, Union, overload
@@ -88,6 +89,11 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
     return None
 
 
+def shlex_quote(string: str) -> str:
+    """Simple wrapper for shlex.quote"""
+    return shlex.quote(string)
+
+
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:
     """Like run_shell but returns 3 values: stdout, stderr and return code"""
     process = subprocess.Popen(
@@ -125,6 +131,16 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
     ast.fix_missing_locations(module)
 
 
+def quote_fstring_args(fstring: ast.JoinedStr) -> None:
+    for index, node in enumerate(fstring.values):
+        if isinstance(node, ast.FormattedValue):
+            fstring.values[index] = ast.Call(
+                func=ast.Name(id='shlex_quote', ctx=ast.Load()),
+                args=[node],
+                keywords=[],
+            )
+
+
 class ShellRunner(ast.NodeTransformer):
     """Replaces the ~'...' syntax with run_shell(...)"""
     @staticmethod
@@ -137,6 +153,9 @@ class ShellRunner(ast.NodeTransformer):
             and isinstance(expr.op, ast.Invert)
             and isinstance(expr.operand, (ast.Str, ast.JoinedStr))
         ):
+            if isinstance(expr.operand, ast.JoinedStr):
+                quote_fstring_args(expr.operand)
+
             function_name = (
                 'run_shell_alternate'
                 if return_stderr_and_returncode
