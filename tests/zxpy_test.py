@@ -40,6 +40,7 @@ def test_stdout_stderr_returncode(
     (
         './tests/test_files/yeses.py',
         './tests/test_files/returncode.py',
+        './tests/test_files/quoting.py',
     ),
 )
 def test_files(filepath) -> None:
