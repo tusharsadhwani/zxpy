@@ -237,26 +237,26 @@ def install() -> None:
     continued_command = False
     while True:
         try:
-            if continued_command:
-                command += '\n'
-            else:
-                command = ''
-
             prompt = '... ' if continued_command else '>>> '
             new_input = input(prompt)
-
-            if new_input != '':
-                command += new_input
-            else:
-                continued_command = False
-
         except KeyboardInterrupt:
             print()
             continue
-
         except EOFError:
             print()
             sys.exit(0)
+
+        # TODO: refactor the next 10 lines.
+        # probably move command = '...' stuff somewhere else
+        if continued_command:
+            command += '\n'
+        else:
+            command = ''
+
+        if new_input != '':
+            command += new_input
+        else:
+            continued_command = False
 
         if continued_command:
             continue
