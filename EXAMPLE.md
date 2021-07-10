@@ -23,7 +23,7 @@ Now you can pipe this data through a JSON parser like `jq` to filter out the url
 
 ```console
 $ curl -s 'https://api.github.com/search/issues?q=author:tusharsadhwani+is:pull-request+is:merged&per_page=100' \
-  | jq '.items[].repository_url'
+> | jq '.items[].repository_url'
 "https://api.github.com/repos/tusharsadhwani/zxpy"
 "https://api.github.com/repos/tusharsadhwani/zxpy"
 "https://api.github.com/repos/tusharsadhwani/piston_bot"
@@ -41,11 +41,11 @@ The completed bash command looks something like this:
 
 ```console
 $ curl -s 'https://api.github.com/search/issues?q=author:tusharsadhwani+is:pull-request+is:merged&per_page=100' \
-  | jq '.items[].repository_url' \
-  | sed -E 's/.+\/(.+?)\/(.+?)\"$/\1:\2/' \
-  | grep -v 'tusharsadhwani' \
-  | sort -u \
-  | wc -l
+> | jq '.items[].repository_url' \
+> | sed -E 's/.+\/(.+?)\/(.+?)\"$/\1:\2/' \
+> | grep -v 'tusharsadhwani' \
+> | sort -u \
+> | wc -l
 20
 ```
 
@@ -94,11 +94,11 @@ Let's say we wanted to clone each of those repositories instead:
 
   ```console
   $ curl -s 'https://api.github.com/search/issues?q=author:tusharsadhwani+is:pull-request+is:merged&per_page=100' \
-    | jq '.items[].repository_url' \
-    | sed -E 's/.+\/(.+?)\/(.+?)\"$/https:\/\/github.com\/\1\/\2/' \
-    | grep -v 'tusharsadhwani' \
-    | sort -u \
-    | xargs -n1 git clone
+  > | jq '.items[].repository_url' \
+  > | sed -E 's/.+\/(.+?)\/(.+?)\"$/https:\/\/github.com\/\1\/\2/' \
+  > | grep -v 'tusharsadhwani' \
+  > | sort -u \
+  > | xargs -n1 git clone
   Cloning into 'astpretty'...
   remote: Enumerating objects: 374, done.
   remote: Counting objects: 100% (93/93), done.
