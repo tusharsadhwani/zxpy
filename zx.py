@@ -46,15 +46,14 @@ def cli() -> None:
     # Remove zxpy executable from argv
     sys.argv = sys.argv[1:]
 
-    filenames = sys.argv
-    if not filenames:
+    if len(sys.argv) == 0:
         setup_zxpy_repl()
         return
 
-    for filename in filenames:
-        with open(filename) as file:
-            module = ast.parse(file.read())
-            run_zxpy(filename, module)
+    filename = sys.argv[0]
+    with open(filename) as file:
+        module = ast.parse(file.read())
+        run_zxpy(filename, module)
 
 
 @overload
