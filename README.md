@@ -8,7 +8,9 @@ Inspired by Google's [zx](https://github.com/google/zx), but made much simpler a
 
 Bash is cool, and it's extremely powerful when paired with linux coreutils and pipes. But apart from that, it's a whole another language to learn, and has a (comparatively) unintuitive syntax for things like conditionals and loops.
 
-`zxpy` aims to supercharge bash by allowing you to write scripts in Python, but with native support for bash commands and pipes:
+`zxpy` aims to supercharge bash by allowing you to write scripts in Python, but with native support for bash commands and pipes.
+
+Let's use it to find all `TODO`s in one of my other projects, and format them into a table:
 
 ```python
 #! /usr/bin/env zxpy
@@ -16,7 +18,7 @@ todo_comments = ~"git grep -n TODO"
 for todo in todo_comments.splitlines():
     filename, lineno, code = todo.split(':', 2)
     *_, comment = code.partition('TODO')
-    print(f"{filename:<40} on line {lineno:<4}: {comment.lstrip(': ')}")
+    print(f"{filename:40} on line {lineno:4}: {comment.lstrip(': ')}")
 ```
 
 Running this, we get:
@@ -31,13 +33,18 @@ server/api/api.go                        on line 94  : move these to /chat/@:add
 server/api/user.go                       on line 80  : check for errors instead of relying on zero value
 ```
 
+### A larger, practical example
+
+You can find a comparison between a practical-ish script written in bash and
+zxpy in [EXAMPLE.md](./EXAMPLE.md)
+
 ## Installation <a href="https://pypi.org/project/zxpy"><img src="https://img.shields.io/badge/pypi-zxpy-blue?style=flat"></a>
 
 ```console
 pip install zxpy
 ```
 
-## Example
+## Basic Examples
 
 Make a file `script.py` (The name and extension can be anything):
 
@@ -61,7 +68,7 @@ file count is: 3
 
 > Run `>>> help('zx')` in Python REPL to find out more ways to use zxpy.
 
-A more involved example: [run_all_tests.py](./examples/run_all_tests.py)
+A slightly more involved example: [run_all_tests.py](./examples/run_all_tests.py)
 
 ```python
 #! /usr/bin/env zxpy
@@ -86,7 +93,7 @@ Running ./tests/platform_test.py..........................Test passed!
 Running ./tests/imports_test.py...........................Test passed!
 ```
 
-Examples are all in the [examples folder](./examples).
+More examples are in [EXAMPLE.md](./EXAMPLE.md), and in the [examples folder](./examples).
 
 ## `stderr` and return codes
 
