@@ -117,8 +117,15 @@ def run_zxpy(filename: str, module: ast.Module) -> None:
     """Runs zxpy on a given file"""
     patch_shell_commands(module)
     code = compile(module, filename, mode='exec')
-    # Passing `__name__` in locals() to avoid overriding any globals
-    exec(code, {'__name__': '__main__'})
+    exec(
+        code,
+        {
+            '__name__': '__main__',
+            'run_shell': run_shell,
+            'run_shell_alternate': run_shell_alternate,
+            'shlex_quote': shlex_quote,
+        },
+    )
 
 
 def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
