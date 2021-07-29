@@ -133,9 +133,6 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
     shell_runner = ShellRunner()
     shell_runner.visit(module)
 
-    for statement in module.body:
-        print_shell_outputs(statement)
-
     ast.fix_missing_locations(module)
 
 
@@ -155,6 +152,7 @@ class ShellRunner(ast.NodeTransformer):
     def modify_expr(
             expr: ast.expr,
             return_stderr_and_returncode: bool = False,
+            print_it: bool = False,
     ) -> ast.expr:
         if (
             isinstance(expr, ast.UnaryOp)
@@ -170,16 +168,26 @@ class ShellRunner(ast.NodeTransformer):
                 else 'run_shell'
             )
 
+            if print_it:
+                keywords = [
+                    ast.keyword(
+                        arg='print_it',
+                        value=ast.Constant(value=True),
+                    )
+                ]
+            else:
+                keywords = []
+
             return ast.Call(
                 func=ast.Name(id=function_name, ctx=ast.Load()),
                 args=[expr.operand],
-                keywords=[],
+                keywords=keywords,
             )
 
         return expr
 
     def visit_Expr(self, expr: ast.Expr) -> ast.Expr:
-        expr.value = self.modify_expr(expr.value)
+        expr.value = self.modify_expr(expr.value, print_it=True)
         super().generic_visit(expr)
         return expr
 
@@ -203,29 +211,6 @@ class ShellRunner(ast.NodeTransformer):
         attr.value = self.modify_expr(attr.value)
         super().generic_visit(attr)
         return attr
-
-
-def print_shell_outputs(statement: ast.stmt) -> None:
-    """Set print_it to True on every top level run_shell"""
-    if isinstance(statement, ast.FunctionDef):
-        for substatement in statement.body:
-            print_shell_outputs(substatement)
-
-    if not isinstance(statement, ast.Expr):
-        return
-
-    expr = statement.value
-    if (
-        isinstance(expr, ast.Call)
-        and isinstance(expr.func, ast.Name)
-        and expr.func.id == 'run_shell'
-    ):
-        expr.keywords = [
-            ast.keyword(
-                arg='print_it',
-                value=ast.Constant(value=True),
-            )
-        ]
 
 
 def setup_zxpy_repl() -> None:

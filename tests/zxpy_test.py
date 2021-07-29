@@ -1,7 +1,10 @@
 import ast
+import contextlib
+import io
 import os
-import pytest
+from contextlib import redirect_stdout
 
+import pytest
 import zx
 
 
@@ -49,3 +52,22 @@ def test_files(filepath) -> None:
     with open(filepath) as file:
         module = ast.parse(file.read())
         zx.run_zxpy(filename, module)
+
+
+def test_prints() -> None:
+    filepath = './tests/test_files/prints.py'
+    filename = os.path.basename(filepath)
+
+    with open(filepath) as file:
+        with redirect_stdout(io.TextIOWrapper(io.BytesIO())) as output:
+            module = ast.parse(file.read())
+            zx.run_zxpy(filename, module)
+
+        expected = (
+            b'hi\n'
+            b'0123456789\n'
+            b'hello, this is main.\n'
+            b"var='abc'\n"
+            b"var='xyz'\n"
+        )
+        assert output.buffer.getvalue() == expected
