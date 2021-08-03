@@ -139,6 +139,15 @@ def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
 def quote_fstring_args(fstring: ast.JoinedStr) -> None:
     for index, node in enumerate(fstring.values):
         if isinstance(node, ast.FormattedValue):
+            # If it's marked as a raw shell string, then don't escape
+            if (
+                isinstance(node.format_spec, ast.JoinedStr)
+                and len(node.format_spec.values) == 1
+                and node.format_spec.values[0].value == 'raw'
+            ):
+                node.format_spec = None
+                continue
+
             fstring.values[index] = ast.Call(
                 func=ast.Name(id='shlex_quote', ctx=ast.Load()),
                 args=[node],
