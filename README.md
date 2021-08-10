@@ -111,6 +111,41 @@ print(return_code)  # 0
 
 More examples are in the [examples folder](./examples).
 
+## Quoting
+
+Take this shell command:
+
+```console
+$ uname -a
+Linux pop-os 5.11.0 [...] x86_64 GNU/Linux
+```
+
+Now take this piece of code:
+
+```pycon
+>>> cmd = 'uname -a'
+>>> ~f'{cmd}'
+/bin/sh: 1: uname -a: not found
+```
+
+Why does this not work?
+
+This is because `uname -a` was **quoted** into `'uname -a'`. All values passed
+inside f-strings are automatically quoted to avoid [shell injection][1].
+
+To disable quoting, the `:raw` format_spec can be used:
+
+```pycon
+>>> cmd = 'uname -a'
+>>> ~f'{cmd:raw}'
+Linux pop-os 5.11.0 [...] x86_64 GNU/Linux
+```
+
+This _disables_ quoting, and the command is run as-is as provided in the string.
+
+> Note that this shouldn't be used with external data, or this _will_ expose you
+> to [shell injection][1].
+
 ## Interactive mode
 
 ```pycon
@@ -149,3 +184,5 @@ Processing ./zxpy
 Successfully installed zxpy-1.X.X
 $ pytest ./tests  # runs tests
 ```
+
+[1]: https://owasp.org/www-community/attacks/Command_Injection
