@@ -133,7 +133,7 @@ Why does this not work?
 This is because `uname -a` was **quoted** into `'uname -a'`. All values passed
 inside f-strings are automatically quoted to avoid [shell injection][1].
 
-To disable quoting, the `:raw` format_spec can be used:
+To prevent quoting, the `:raw` format_spec can be used:
 
 ```pycon
 >>> cmd = 'uname -a'
