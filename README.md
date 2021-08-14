@@ -44,6 +44,14 @@ zxpy in [EXAMPLE.md](./EXAMPLE.md)
 pip install zxpy
 ```
 
+### pipx
+
+If you have `pipx` installed, you can try out zxpy without installing it, by running:
+
+```console
+pipx run zxpy
+```
+
 ## Basic Examples
 
 Make a file `script.py` (The name and extension can be anything):
