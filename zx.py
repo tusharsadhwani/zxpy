@@ -201,9 +201,11 @@ class ShellRunner(ast.NodeTransformer):
         return expr
 
     def visit_Assign(self, assign: ast.Assign) -> ast.Assign:
+        # If there's more than one target on the left, assume 3-tuple
+        multiple_targets = isinstance(assign.targets[0], (ast.List, ast.Tuple))
         assign.value = self.modify_expr(
             assign.value,
-            return_stderr_and_returncode=isinstance(assign.targets[0], ast.Tuple),
+            return_stderr_and_returncode=multiple_targets,
         )
 
         super().generic_visit(assign)
