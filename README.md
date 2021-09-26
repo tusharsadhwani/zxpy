@@ -66,7 +66,7 @@ print("file count is:", file_count)
 
 And then run it:
 
-```bash
+```console
 $ chmod +x ./script.py
 
 $ ./script.py
@@ -184,7 +184,7 @@ and zxpy should be enabled in the existing session.
 
 To install from source, clone the repo, and do the following:
 
-```bash
+```console
 $ source ./venv/bin/activate  # Always use a virtualenv!
 $ pip install -r requirements-dev.txt
 Processing ./zxpy
