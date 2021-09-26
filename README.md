@@ -190,7 +190,7 @@ $ pip install -r requirements-dev.txt
 Processing ./zxpy
 [...]
 Successfully installed zxpy-1.X.X
-$ pytest ./tests  # runs tests
+$ pytest  # runs tests
 ```
 
 [1]: https://owasp.org/www-community/attacks/Command_Injection
