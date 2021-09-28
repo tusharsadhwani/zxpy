@@ -235,7 +235,7 @@ def setup_zxpy_repl() -> None:
 
 def install() -> None:
     """
-    Starts an interactive shell that looks like the REPL, but with zxpy features.
+    Starts an interactive Python shell with zxpy features.
 
     Useful for setting up a zxpy session in an already running REPL.
     Simply do:
