@@ -1,5 +1,6 @@
 import ast
 import os
+import subprocess
 from textwrap import dedent
 
 import pytest
@@ -70,3 +71,8 @@ def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
             """
         )
         assert capsys.readouterr().out == expected
+
+
+def test_argv() -> None:
+    test_file = "./tests/test_files/argv.py"
+    subprocess.run(["zxpy", test_file])
