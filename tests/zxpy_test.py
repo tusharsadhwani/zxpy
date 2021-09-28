@@ -12,7 +12,7 @@ import zx
     (
         ("echo hello world", "hello world"),
         ("ls | tail -6 | wc -l", "6"),
-        ("find . -maxdepth 1 -name '*\\.py' | grep -v test | wc -l", "3"),
+        ("find . -maxdepth 1 -name '*\\.py' | grep -v test | wc -l", "2"),
         ("cat /etc/shadow 2> /dev/null; echo $?", "1"),
     ),
 )
