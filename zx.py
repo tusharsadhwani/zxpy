@@ -28,7 +28,7 @@ import subprocess
 import shlex
 import sys
 import traceback
-from typing import Literal, Optional, Tuple, Union, overload
+from typing import Tuple, Union, IO
 
 
 def cli() -> None:
@@ -56,16 +56,8 @@ def cli() -> None:
         run_zxpy(filename, module)
 
 
-@overload
-def run_shell(command: str) -> str: ...
-@overload
-def run_shell(command: str, print_it: Literal[False]) -> str: ...
-@overload
-def run_shell(command: str, print_it: Literal[True]) -> None: ...
-
-
-def run_shell(command: str, print_it: bool = False) -> Optional[str]:
-    """This is indirectly run when doing ~'...'"""
+def create_shell_process(command: str) -> IO[bytes]:
+    """Creates a shell process, returning its stdout to read data from."""
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -73,24 +65,25 @@ def run_shell(command: str, print_it: bool = False) -> Optional[str]:
         shell=True
     )
     assert process.stdout is not None
+    return process.stdout
 
-    if not print_it:
-        return process.stdout.read().decode()
 
+def run_shell(command: str) -> str:
+    """This is indirectly run when doing ~'...'"""
+    stdout = create_shell_process(command)
+    return stdout.read().decode()
+
+
+def run_shell_print(command: str) -> None:
+    """Version of `run_shell` that prints out the response instead of returning a string."""
+    stdout = create_shell_process(command)
     while True:
-        char = process.stdout.read(1)
+        char = stdout.read(1)
         if not char:
             break
 
         sys.stdout.buffer.write(char)
         sys.stdout.flush()
-
-    return None
-
-
-def shlex_quote(string: str) -> str:
-    """Simple wrapper for shlex.quote"""
-    return shlex.quote(string)
 
 
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:
@@ -121,9 +114,10 @@ def run_zxpy(filename: str, module: ast.Module) -> None:
         code,
         {
             '__name__': '__main__',
-            'run_shell': run_shell,
-            'run_shell_alternate': run_shell_alternate,
-            'shlex_quote': shlex_quote,
+            '$run_shell': run_shell,
+            '$run_shell_alternate': run_shell_alternate,
+            '$run_shell_print': run_shell_print,
+            '$shlex_quote': shlex.quote,
         },
     )
 
@@ -143,13 +137,14 @@ def quote_fstring_args(fstring: ast.JoinedStr) -> None:
             if (
                 isinstance(node.format_spec, ast.JoinedStr)
                 and len(node.format_spec.values) == 1
+                and isinstance(node.format_spec.values[0], (ast.Str, ast.Constant))
                 and node.format_spec.values[0].value == 'raw'
             ):
                 node.format_spec = None
                 continue
 
             fstring.values[index] = ast.Call(
-                func=ast.Name(id='shlex_quote', ctx=ast.Load()),
+                func=ast.Name(id='$shlex_quote', ctx=ast.Load()),
                 args=[node],
                 keywords=[],
             )
@@ -172,25 +167,17 @@ class ShellRunner(ast.NodeTransformer):
                 quote_fstring_args(expr.operand)
 
             function_name = (
-                'run_shell_alternate'
+                '$run_shell_alternate'
                 if return_stderr_and_returncode
-                else 'run_shell'
+                else '$run_shell_print'
+                if print_it
+                else '$run_shell'
             )
-
-            if print_it:
-                keywords = [
-                    ast.keyword(
-                        arg='print_it',
-                        value=ast.Constant(value=True),
-                    )
-                ]
-            else:
-                keywords = []
 
             return ast.Call(
                 func=ast.Name(id=function_name, ctx=ast.Load()),
                 args=[expr.operand],
-                keywords=keywords,
+                keywords=[],
             )
 
         return expr
