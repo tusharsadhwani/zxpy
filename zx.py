@@ -240,6 +240,16 @@ def install() -> None:
         parent_locals = parent_frame.frame.f_locals
         locals().update(parent_locals)
 
+    # setup zxpy globals
+    globals().update(
+        {
+            "$run_shell": run_shell,
+            "$run_shell_alternate": run_shell_alternate,
+            "$run_shell_print": run_shell_print,
+            "$shlex_quote": shlex.quote,
+        }
+    )
+
     # For tab completion and arrow key support
     if sys.platform != "win32":
         import readline
