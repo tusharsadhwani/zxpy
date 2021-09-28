@@ -57,7 +57,6 @@ def test_prints(capsys) -> None:
     filename = os.path.basename(filepath)
 
     with open(filepath) as file:
-        captured = capsys.readouterr()
         module = ast.parse(file.read())
         zx.run_zxpy(filename, module)
 
