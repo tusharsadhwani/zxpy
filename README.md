@@ -1,5 +1,9 @@
 # zxpy
 
+[![Downloads](https://pepy.tech/badge/zxpy)](https://pepy.tech/project/zxpy)
+[![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![CI Status](https://github.com/tusharsadhwani/zxpy/actions/workflows/tox.yml/badge.svg)](https://github.com/tusharsadhwani/zxpy/actions/workflows/tox.yml)
+
 Shell scripts made simple 🐚
 
 Inspired by Google's [zx](https://github.com/google/zx), but made much simpler and more accessible using Python.
