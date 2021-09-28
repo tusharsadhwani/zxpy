@@ -59,10 +59,7 @@ def cli() -> None:
 def create_shell_process(command: str) -> IO[bytes]:
     """Creates a shell process, returning its stdout to read data from."""
     process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=True
+        command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True
     )
     assert process.stdout is not None
     return process.stdout
@@ -109,15 +106,15 @@ def run_shell_alternate(command: str) -> Tuple[str, str, int]:
 def run_zxpy(filename: str, module: ast.Module) -> None:
     """Runs zxpy on a given file"""
     patch_shell_commands(module)
-    code = compile(module, filename, mode='exec')
+    code = compile(module, filename, mode="exec")
     exec(
         code,
         {
-            '__name__': '__main__',
-            '$run_shell': run_shell,
-            '$run_shell_alternate': run_shell_alternate,
-            '$run_shell_print': run_shell_print,
-            '$shlex_quote': shlex.quote,
+            "__name__": "__main__",
+            "$run_shell": run_shell,
+            "$run_shell_alternate": run_shell_alternate,
+            "$run_shell_print": run_shell_print,
+            "$shlex_quote": shlex.quote,
         },
     )
 
@@ -148,7 +145,7 @@ def quote_fstring_args(fstring: ast.JoinedStr) -> None:
                 continue
 
             fstring.values[index] = ast.Call(
-                func=ast.Name(id='$shlex_quote', ctx=ast.Load()),
+                func=ast.Name(id="$shlex_quote", ctx=ast.Load()),
                 args=[node],
                 keywords=[],
             )
@@ -156,11 +153,12 @@ def quote_fstring_args(fstring: ast.JoinedStr) -> None:
 
 class ShellRunner(ast.NodeTransformer):
     """Replaces the ~'...' syntax with run_shell(...)"""
+
     @staticmethod
     def modify_expr(
-            expr: ast.expr,
-            return_stderr_and_returncode: bool = False,
-            print_it: bool = False,
+        expr: ast.expr,
+        return_stderr_and_returncode: bool = False,
+        print_it: bool = False,
     ) -> ast.expr:
         if (
             isinstance(expr, ast.UnaryOp)
@@ -171,11 +169,11 @@ class ShellRunner(ast.NodeTransformer):
                 quote_fstring_args(expr.operand)
 
             function_name = (
-                '$run_shell_alternate'
+                "$run_shell_alternate"
                 if return_stderr_and_returncode
-                else '$run_shell_print'
+                else "$run_shell_print"
                 if print_it
-                else '$run_shell'
+                else "$run_shell"
             )
 
             return ast.Call(
@@ -243,15 +241,16 @@ def install() -> None:
         locals().update(parent_locals)
 
     # For tab completion and arrow key support
-    if sys.platform != 'win32':
+    if sys.platform != "win32":
         import readline
+
         readline.parse_and_bind("tab: complete")
 
-    command = ''
+    command = ""
     continued_command = False
     while True:
         try:
-            prompt = '... ' if continued_command else '>>> '
+            prompt = "... " if continued_command else ">>> "
             new_input = input(prompt)
         except KeyboardInterrupt:
             print()
@@ -263,11 +262,11 @@ def install() -> None:
         # TODO: refactor the next 10 lines.
         # probably move command = '...' stuff somewhere else
         if continued_command:
-            command += '\n'
+            command += "\n"
         else:
-            command = ''
+            command = ""
 
-        if new_input != '':
+        if new_input != "":
             command += new_input
         else:
             continued_command = False
@@ -276,7 +275,7 @@ def install() -> None:
             continue
 
         try:
-            ast_obj = ast.parse(command, '<input>', 'single')
+            ast_obj = ast.parse(command, "<input>", "single")
         except SyntaxError:
             try:
                 code_obj = code.compile_command(command)
@@ -292,7 +291,7 @@ def install() -> None:
         patch_shell_commands(ast_obj)
 
         try:
-            code_obj = compile(ast_obj, '<input>', 'single')
+            code_obj = compile(ast_obj, "<input>", "single")
             assert code_obj is not None
             exec(code_obj)
 
@@ -303,5 +302,5 @@ def install() -> None:
             traceback.print_exc()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
