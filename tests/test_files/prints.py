@@ -10,7 +10,7 @@ def main():
     ~'echo hello, this is main.'
 
     for var in ['abc', 'xyz']:
-        ~f'echo {var=}'
+        ~f'echo var={var!r}'
 
 
 main()
