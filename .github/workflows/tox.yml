@@ -1,4 +1,4 @@
-name: Run Tox
+name: Tox
 
 on:
   push:
