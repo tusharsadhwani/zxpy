@@ -1,7 +1,6 @@
 import ast
-import io
 import os
-from contextlib import redirect_stdout
+from textwrap import dedent
 
 import pytest
 import zx
@@ -45,7 +44,7 @@ def test_stdout_stderr_returncode(
         "./tests/test_files/quoting.py",
     ),
 )
-def test_files(filepath) -> None:
+def test_files(filepath: str) -> None:
     filename = os.path.basename(filepath)
 
     with open(filepath) as file:
@@ -53,20 +52,22 @@ def test_files(filepath) -> None:
         zx.run_zxpy(filename, module)
 
 
-def test_prints() -> None:
+def test_prints(capsys) -> None:
     filepath = "./tests/test_files/prints.py"
     filename = os.path.basename(filepath)
 
     with open(filepath) as file:
-        with redirect_stdout(io.TextIOWrapper(io.BytesIO())) as output:
-            module = ast.parse(file.read())
-            zx.run_zxpy(filename, module)
+        captured = capsys.readouterr()
+        module = ast.parse(file.read())
+        zx.run_zxpy(filename, module)
 
-        expected = (
-            b"hi\n"
-            b"0123456789\n"
-            b"hello, this is main.\n"
-            b"var='abc'\n"
-            b"var='xyz'\n"
+        expected = dedent(
+            """\
+            hi
+            0123456789
+            hello, this is main.
+            var='abc'
+            var='xyz'
+            """
         )
-        assert output.buffer.getvalue() == expected
+        assert capsys.readouterr().out == expected
