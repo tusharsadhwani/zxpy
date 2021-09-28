@@ -1,7 +1,7 @@
-__pycache__
-venv
+.tox
+.vscode
 *.egg-info
+*.pyc
 build
 dist
-
-.vscode
+venv
