@@ -52,7 +52,7 @@ def test_files(filepath: str) -> None:
         zx.run_zxpy(filename, module)
 
 
-def test_prints(capsys) -> None:
+def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
     filepath = "./tests/test_files/prints.py"
     filename = os.path.basename(filepath)
 
