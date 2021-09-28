@@ -137,8 +137,12 @@ def quote_fstring_args(fstring: ast.JoinedStr) -> None:
             if (
                 isinstance(node.format_spec, ast.JoinedStr)
                 and len(node.format_spec.values) == 1
-                and isinstance(node.format_spec.values[0], (ast.Str, ast.Constant))
-                and node.format_spec.values[0].value == 'raw'
+                and (
+                    isinstance(node.format_spec.values[0], ast.Str)
+                    and node.format_spec.values[0].s == "raw"
+                    or isinstance(node.format_spec.values[0], ast.Constant)
+                    and node.format_spec.values[0].value == "raw"
+                )
             ):
                 node.format_spec = None
                 continue
