@@ -76,3 +76,10 @@ def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
 def test_argv() -> None:
     test_file = "./tests/test_files/argv.py"
     subprocess.run(["zxpy", test_file])
+
+
+def test_raise() -> None:
+    with pytest.raises(ChildProcessError) as exc:
+        zx.run_shell("exit 1")
+
+    assert exc.value.args == (1,)

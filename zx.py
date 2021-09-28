@@ -59,8 +59,15 @@ def cli() -> None:
 def create_shell_process(command: str) -> IO[bytes]:
     """Creates a shell process, returning its stdout to read data from."""
     process = subprocess.Popen(
-        command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
     )
+    process.wait()
+    if process.returncode != 0:
+        raise ChildProcessError(process.returncode)
+
     assert process.stdout is not None
     return process.stdout
 
