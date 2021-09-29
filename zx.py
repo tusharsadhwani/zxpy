@@ -109,14 +109,15 @@ def run_shell_alternate(command: str) -> Tuple[str, str, int]:
         stderr=subprocess.PIPE,
         shell=True,
     )
-    process.wait()
+
+    stdout_text, stderr_text = process.communicate()
     assert process.stdout is not None
     assert process.stderr is not None
     assert process.returncode is not None
 
     return (
-        process.stdout.read().decode(),
-        process.stderr.read().decode(),
+        stdout_text.decode(),
+        stderr_text.decode(),
         process.returncode,
     )
 
