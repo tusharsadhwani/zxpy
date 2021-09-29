@@ -23,12 +23,15 @@ script. Note that this requires you to have zxpy installed globally.
 """
 import ast
 import code
+import contextlib
 import inspect
-import subprocess
+import os
+import select
 import shlex
+import subprocess
 import sys
 import traceback
-from typing import Tuple, Union, IO
+from typing import Generator, Tuple, Union, IO
 
 
 def cli() -> None:
@@ -56,38 +59,46 @@ def cli() -> None:
         run_zxpy(filename, module)
 
 
-def create_shell_process(command: str) -> IO[bytes]:
-    """Creates a shell process, returning its stdout to read data from."""
+@contextlib.contextmanager
+def create_shell_process(command: str) -> Generator[IO[bytes], None, None]:
+    """Creates a shell process, yielding its stdout to read data from."""
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
     )
+    assert process.stdout is not None
+    yield process.stdout
+
     process.wait()
+    process.stdout.close()
     if process.returncode != 0:
         raise ChildProcessError(process.returncode)
-
-    assert process.stdout is not None
-    return process.stdout
 
 
 def run_shell(command: str) -> str:
     """This is indirectly run when doing ~'...'"""
-    stdout = create_shell_process(command)
-    return stdout.read().decode()
+    with create_shell_process(command) as stdout:
+        output = stdout.read().decode()
+        return output
 
 
 def run_shell_print(command: str) -> None:
     """Version of `run_shell` that prints out the response instead of returning a string."""
-    stdout = create_shell_process(command)
-    while True:
-        char = stdout.read(1)
-        if not char:
-            break
+    with create_shell_process(command) as stdout:
+        os.set_blocking(stdout.fileno(), False)
 
-        sys.stdout.buffer.write(char)
-        sys.stdout.flush()
+        poll = select.poll()
+        poll.register(stdout, select.POLLIN)
+        while True:
+            [(_, code)] = poll.poll()
+            if code == select.POLLHUP:
+                break
+
+            text = stdout.read()
+            sys.stdout.buffer.write(text)
+            sys.stdout.buffer.flush()
 
 
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:
@@ -98,14 +109,15 @@ def run_shell_alternate(command: str) -> Tuple[str, str, int]:
         stderr=subprocess.PIPE,
         shell=True,
     )
-    process.wait()
+
+    stdout_text, stderr_text = process.communicate()
     assert process.stdout is not None
     assert process.stderr is not None
     assert process.returncode is not None
 
     return (
-        process.stdout.read().decode(),
-        process.stderr.read().decode(),
+        stdout_text.decode(),
+        stderr_text.decode(),
         process.returncode,
     )
 
