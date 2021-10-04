@@ -54,6 +54,7 @@ Now if I'm being honest, I'm not someone who would look up and willingly read th
 So let's use zxpy for this instead. Since I personally don't like `urllib`, we're going to use `curl` directly instead:
 
 ```python
+#!/usr/bin/env zxpy
 import json
 
 # this will hold unique tuples of (org_name, repo_name)
