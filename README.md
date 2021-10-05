@@ -6,6 +6,8 @@
 
 Shell scripts made simple 🐚
 
+zxpy lets you seamlessly write shell commands inside Python code, to create readable and maintainable shell scripts.
+
 Inspired by Google's [zx](https://github.com/google/zx), but made much simpler and more accessible using Python.
 
 ## Rationale
@@ -36,6 +38,8 @@ instachat/lib/services/chat_service.dart on line 211 : error handling
 server/api/api.go                        on line 94  : move these to /chat/@:address
 server/api/user.go                       on line 80  : check for errors instead of relying on zero value
 ```
+
+Writing something like this purely in bash or in Python would be much harder than this. Being able to use linux utilities seamlessly with a readable, general purpose language is what makes this a really powerful tool.
 
 ### A larger, practical example
 
