@@ -1,7 +1,7 @@
 ~'echo hi'
 
 for i in range(10):
-    ~f'echo -n {i}'
+    ~f'printf {i} %b'
 else:
     ~'echo'
 

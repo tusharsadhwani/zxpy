@@ -17,14 +17,14 @@ import zx
     ),
 )
 def test_shell_output(command: str, output: str) -> None:
-    assert zx.run_shell(command).rstrip("\r\n") == output
+    assert zx.run_shell(command).rstrip("\r\n").strip(" ") == output
 
 
 @pytest.mark.parametrize(
     ("command", "stdout", "stderr", "return_code"),
     (
         ("echo hello world", "hello world\n", "", 0),
-        ("echo -n failed && exit 200", "failed", "", 200),
+        ("echo failed && exit 200", "failed\n", "", 200),
         ("cat .", "", "cat: .: Is a directory\n", 1),
     ),
 )
