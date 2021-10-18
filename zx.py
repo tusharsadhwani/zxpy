@@ -93,7 +93,7 @@ def run_shell_print(command: str) -> None:
         poll.register(stdout, select.POLLIN)
         while True:
             [(_, code)] = poll.poll()
-            if code == select.POLLHUP:
+            if code & select.POLLHUP:  # Checks if the HUP bit is active
                 break
 
             text = stdout.read()
