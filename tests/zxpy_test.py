@@ -17,7 +17,7 @@ import zx
     ),
 )
 def test_shell_output(command: str, output: str) -> None:
-    assert zx.run_shell(command).rstrip("\r\n") == output
+    assert zx.run_shell(command).rstrip("\r\n").strip(" ") == output
 
 
 @pytest.mark.parametrize(
