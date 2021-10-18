@@ -64,7 +64,11 @@ def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
         expected = dedent(
             """\
             hi
-            0123456789
+            1
+            1 2
+            1 2 3
+            1 2 3 4
+            done
             hello, this is main.
             var='abc'
             var='xyz'
