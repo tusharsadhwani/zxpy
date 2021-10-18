@@ -90,10 +90,11 @@ def run_shell_print(command: str) -> None:
         decoder = UTF8Decoder()
         with open(stdout.fileno(), 'rb', closefd=False) as buff:
             # read1 should be present on BinaryIO but it's not. Typeshed bug
-            while data := buff.read1():  # type: ignore
-                print(decoder.decode(data), end="")
-
-            print(decoder.decode(data, final=True), end="")
+            for text in iter(buff.read1, b""):  # type: ignore
+                print(decoder.decode(text), end="")
+                break
+            else:
+                print(decoder.decode(text, final=True), end="")
 
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:
     """Like run_shell but returns 3 values: stdout, stderr and return code"""
