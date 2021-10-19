@@ -32,6 +32,8 @@ import sys
 import traceback
 from typing import Generator, Tuple, Union, IO
 
+UTF8Decoder = codecs.getincrementaldecoder("utf8")
+
 
 def cli() -> None:
     """
@@ -86,15 +88,14 @@ def run_shell(command: str) -> str:
 def run_shell_print(command: str) -> None:
     """Version of `run_shell` that prints out the response instead of returning a string."""
     with create_shell_process(command) as stdout:
-        UTF8Decoder = codecs.getincrementaldecoder("utf8")
         decoder = UTF8Decoder()
         with open(stdout.fileno(), 'rb', closefd=False) as buff:
             # read1 should be present on BinaryIO but it's not. Typeshed bug
             for text in iter(buff.read1, b""):  # type: ignore
                 print(decoder.decode(text), end="")
-                break
-            else:
-                print(decoder.decode(text, final=True), end="")
+
+            print(decoder.decode(b"", final=True), end="")
+
 
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:
     """Like run_shell but returns 3 values: stdout, stderr and return code"""
