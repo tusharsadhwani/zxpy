@@ -23,15 +23,16 @@ script. Note that this requires you to have zxpy installed globally.
 """
 import ast
 import code
+import codecs
 import contextlib
 import inspect
-import os
-import select
 import shlex
 import subprocess
 import sys
 import traceback
 from typing import Generator, Tuple, Union, IO
+
+UTF8Decoder = codecs.getincrementaldecoder("utf8")
 
 
 def cli() -> None:
@@ -87,18 +88,13 @@ def run_shell(command: str) -> str:
 def run_shell_print(command: str) -> None:
     """Version of `run_shell` that prints out the response instead of returning a string."""
     with create_shell_process(command) as stdout:
-        os.set_blocking(stdout.fileno(), False)
+        decoder = UTF8Decoder()
+        with open(stdout.fileno(), 'rb', closefd=False) as buff:
+            # read1 should be present on BinaryIO but it's not. Typeshed bug
+            for text in iter(buff.read1, b""):  # type: ignore
+                print(decoder.decode(text), end="")
 
-        poll = select.poll()
-        poll.register(stdout, select.POLLIN)
-        while True:
-            [(_, code)] = poll.poll()
-            if code & select.POLLHUP:  # Checks if the HUP bit is active
-                break
-
-            text = stdout.read()
-            sys.stdout.buffer.write(text)
-            sys.stdout.buffer.flush()
+            print(decoder.decode(b"", final=True), end="")
 
 
 def run_shell_alternate(command: str) -> Tuple[str, str, int]:

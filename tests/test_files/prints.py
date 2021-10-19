@@ -1,9 +1,9 @@
 ~'echo hi'
 
-for i in range(10):
-    ~f'printf {i} %b'
+for i in range(1, 5):
+    ~f'seq 1 {i} | xargs echo'
 else:
-    ~'echo'
+    ~'echo done'
 
 
 def main():
