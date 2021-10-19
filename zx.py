@@ -279,6 +279,9 @@ def install() -> None:
             new_input = input(prompt)
         except KeyboardInterrupt:
             print()
+            if continued_command:
+                continued_command = False
+                command = ""
             continue
         except EOFError:
             print()
