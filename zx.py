@@ -21,6 +21,8 @@ the shebang:
 ...to the top of your file, and executing it directly like a shell
 script. Note that this requires you to have zxpy installed globally.
 """
+from __future__ import annotations
+
 import argparse
 import ast
 import code
@@ -31,7 +33,7 @@ import shlex
 import subprocess
 import sys
 import traceback
-from typing import Any, Dict, Generator, Optional, Tuple, Union, IO
+from typing import Any, Generator, IO
 
 UTF8Decoder = codecs.getincrementaldecoder("utf8")
 
@@ -74,7 +76,7 @@ def cli() -> None:
     with open(args.filename) as file:
         module = ast.parse(file.read())
 
-        globals_dict: Dict[str, Any] = {}
+        globals_dict: dict[str, Any] = {}
         try:
             run_zxpy(args.filename, module, globals_dict)
         except Exception:
@@ -126,7 +128,7 @@ def run_shell_print(command: str) -> None:
             print(decoder.decode(b"", final=True), end="")
 
 
-def run_shell_alternate(command: str) -> Tuple[str, str, int]:
+def run_shell_alternate(command: str) -> tuple[str, str, int]:
     """Like run_shell but returns 3 values: stdout, stderr and return code"""
     process = subprocess.Popen(
         command,
@@ -150,7 +152,7 @@ def run_shell_alternate(command: str) -> Tuple[str, str, int]:
 def run_zxpy(
     filename: str,
     module: ast.Module,
-    globals_dict: Optional[Dict[str, Any]] = None,
+    globals_dict: dict[str, Any] | None = None,
 ) -> None:
     """Runs zxpy on a given file"""
     patch_shell_commands(module)
@@ -171,7 +173,7 @@ def run_zxpy(
     exec(code, globals_dict)
 
 
-def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
+def patch_shell_commands(module: ast.Module | ast.Interactive) -> None:
     """Patches the ast module to add zxpy functionality"""
     shell_runner = ShellRunner()
     shell_runner.visit(module)
