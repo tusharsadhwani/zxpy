@@ -21,6 +21,7 @@ the shebang:
 ...to the top of your file, and executing it directly like a shell
 script. Note that this requires you to have zxpy installed globally.
 """
+import argparse
 import ast
 import code
 import codecs
@@ -30,9 +31,14 @@ import shlex
 import subprocess
 import sys
 import traceback
-from typing import Generator, Tuple, Union, IO
+from typing import Any, Dict, Generator, Optional, Tuple, Union, IO
 
 UTF8Decoder = codecs.getincrementaldecoder("utf8")
+
+
+class ZxpyArgs(argparse.Namespace):
+    interactive: bool
+    filename: str
 
 
 def cli() -> None:
@@ -47,6 +53,17 @@ def cli() -> None:
 
         zxpy
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-i',
+        '--interactive',
+        action='store_true',
+        help='Run in interactive mode',
+    )
+    parser.add_argument('filename', help='Name of file to run')
+
+    args = parser.parse_args(namespace=ZxpyArgs())
+
     # Remove zxpy executable from argv
     del sys.argv[0]
 
@@ -54,10 +71,22 @@ def cli() -> None:
         setup_zxpy_repl()
         return
 
-    filename = sys.argv[0]
-    with open(filename) as file:
+    with open(args.filename) as file:
         module = ast.parse(file.read())
-        run_zxpy(filename, module)
+
+        globals_dict: Dict[str, Any] = {}
+        try:
+            run_zxpy(args.filename, module, globals_dict)
+        except Exception:
+            # Only catch the exception in interactive mode
+            if not args.interactive:
+                raise
+
+            traceback.print_exc()
+
+        if args.interactive:
+            globals().update(globals_dict)
+            install()
 
 
 @contextlib.contextmanager
@@ -118,20 +147,28 @@ def run_shell_alternate(command: str) -> Tuple[str, str, int]:
     )
 
 
-def run_zxpy(filename: str, module: ast.Module) -> None:
+def run_zxpy(
+    filename: str,
+    module: ast.Module,
+    globals_dict: Optional[Dict[str, Any]] = None,
+) -> None:
     """Runs zxpy on a given file"""
     patch_shell_commands(module)
     code = compile(module, filename, mode="exec")
-    exec(
-        code,
+
+    if globals_dict is None:
+        globals_dict = {}
+
+    globals_dict.update(
         {
             "__name__": "__main__",
             "$run_shell": run_shell,
             "$run_shell_alternate": run_shell_alternate,
             "$run_shell_print": run_shell_print,
             "$shlex_quote": shlex.quote,
-        },
+        }
     )
+    exec(code, globals_dict)
 
 
 def patch_shell_commands(module: Union[ast.Module, ast.Interactive]) -> None:
