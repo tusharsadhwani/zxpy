@@ -122,7 +122,7 @@ def run_shell_print(command: str) -> None:
         decoder = UTF8Decoder()
         with open(stdout.fileno(), 'rb', closefd=False) as buff:
             # read1 should be present on BinaryIO but it's not. Typeshed bug
-            for text in iter(buff.read1, b""):  # type: ignore
+            for text in iter(buff.read1, b""):
                 print(decoder.decode(text), end="")
 
             print(decoder.decode(b"", final=True), end="")
