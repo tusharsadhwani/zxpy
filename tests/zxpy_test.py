@@ -104,14 +104,5 @@ def test_interactive(
 
     stdout, stderr = process.communicate(input=b"~'echo hi'\nprint(10)\n")
     assert stderr == b''
-    assert stdout.decode() == dedent(
-        """\
-        zxpy shell
-        Python 3.9.7 (default, Sep 10 2021, 14:59:43) 
-        [GCC 11.2.0]
-        
-        >>> hi
-        >>> 10
-        >>> 
-        """
-    )
+    outlines = [line for line in stdout.decode().splitlines() if line.startswith('>>>')]
+    assert outlines == [">>> hi", ">>> 10", ">>> "]
