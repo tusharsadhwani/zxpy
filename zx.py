@@ -28,18 +28,19 @@ import ast
 import code
 import codecs
 import contextlib
+from fileinput import filename
 import inspect
 import shlex
 import subprocess
 import sys
 import traceback
-from typing import Any, Generator, IO
+from typing import Any, Generator, IO, Optional
 
 UTF8Decoder = codecs.getincrementaldecoder("utf8")
 
 
 class ZxpyArgs(argparse.Namespace):
-    interactive: bool
+    interactive: Optional[bool]
     filename: str
 
 
@@ -62,14 +63,14 @@ def cli() -> None:
         action='store_true',
         help='Run in interactive mode',
     )
-    parser.add_argument('filename', help='Name of file to run')
+    parser.add_argument('filename', help='Name of file to run', nargs='?')
 
     args = parser.parse_args(namespace=ZxpyArgs())
 
     # Remove zxpy executable from argv
     del sys.argv[0]
 
-    if len(sys.argv) == 0:
+    if args.filename is None:
         setup_zxpy_repl()
         return
 

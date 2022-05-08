@@ -1,6 +1,8 @@
 import ast
+import io
 import os
 import subprocess
+import sys
 from textwrap import dedent
 
 import pytest
@@ -87,3 +89,29 @@ def test_raise() -> None:
         zx.run_shell("exit 1")
 
     assert exc.value.args == (1,)
+
+
+def test_interactive(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    process = subprocess.Popen(
+        ["zxpy", "-i"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    stdout, stderr = process.communicate(input=b"~'echo hi'\nprint(10)\n")
+    assert stderr == b''
+    assert stdout.decode() == dedent(
+        """\
+        zxpy shell
+        Python 3.9.7 (default, Sep 10 2021, 14:59:43) 
+        [GCC 11.2.0]
+        
+        >>> hi
+        >>> 10
+        >>> 
+        """
+    )
