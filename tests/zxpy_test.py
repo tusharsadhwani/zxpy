@@ -1,8 +1,6 @@
 import ast
-import io
 import os
 import subprocess
-import sys
 from textwrap import dedent
 
 import pytest

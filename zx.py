@@ -28,7 +28,6 @@ import ast
 import code
 import codecs
 import contextlib
-from fileinput import filename
 import inspect
 import shlex
 import subprocess
