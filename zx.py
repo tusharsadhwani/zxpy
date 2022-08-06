@@ -273,6 +273,7 @@ def setup_zxpy_repl() -> None:
     print()
 
     install()
+    sys.exit()
 
 
 class ZxpyConsole(code.InteractiveConsole):
