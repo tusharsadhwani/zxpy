@@ -89,10 +89,7 @@ def test_raise() -> None:
     assert exc.value.args == (1,)
 
 
-def test_interactive(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_interactive() -> None:
     process = subprocess.Popen(
         ["zxpy", "-i"],
         stdin=subprocess.PIPE,
@@ -100,7 +97,20 @@ def test_interactive(
         stderr=subprocess.PIPE,
     )
 
-    stdout, stderr = process.communicate(input=b"~'echo hi'\nprint(10)\n")
-    assert stderr == b''
+    code = dedent(
+        """\
+        ~'echo hi'
+        print(10)
+        def f(n):
+            if n < 2:
+                return 1
+            return f(n-1) + f(n-2)
+
+        print(f(5))
+        """
+    )
+
+    stdout, stderr = process.communicate(input=code.encode())
+    assert stderr == b'\n'
     outlines = [line for line in stdout.decode().splitlines() if line.startswith('>>>')]
-    assert outlines == [">>> hi", ">>> 10", ">>> "]
+    assert outlines == [">>> hi", ">>> 10", ">>> ... ... ... ... >>> 8", ">>> "]

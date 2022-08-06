@@ -275,6 +275,34 @@ def setup_zxpy_repl() -> None:
     install()
 
 
+class ZxpyConsole(code.InteractiveConsole):
+    """Runs zxpy over"""
+
+    def runsource(
+        self,
+        source: str,
+        filename: str = "<console>",
+        symbol: str = "single",
+    ) -> bool:
+        # First, check if it could be incomplete input, return True if it is.
+        # This will allow it to keep taking input
+        with contextlib.suppress(SyntaxError, OverflowError):
+            if code.compile_command(source) == None:
+                return True
+
+        try:
+            ast_obj = ast.parse(source, filename, mode=symbol)
+            assert isinstance(ast_obj, ast.Interactive)
+            patch_shell_commands(ast_obj)
+            code_obj = compile(ast_obj, filename, mode=symbol)
+        except (ValueError, SyntaxError):
+            # Let the original implementation take care of incomplete input / errors
+            return super().runsource(source, filename, symbol)
+
+        self.runcode(code_obj)
+        return False
+
+
 def install() -> None:
     """
     Starts an interactive Python shell with zxpy features.
@@ -291,17 +319,8 @@ def install() -> None:
     if len(frames) > 1:
         parent_frame = frames[1]
         parent_locals = parent_frame.frame.f_locals
-        locals().update(parent_locals)
-
-    # setup zxpy globals
-    globals().update(
-        {
-            "$run_shell": run_shell,
-            "$run_shell_alternate": run_shell_alternate,
-            "$run_shell_print": run_shell_print,
-            "$shlex_quote": shlex.quote,
-        }
-    )
+    else:
+        parent_locals = {}
 
     # For tab completion and arrow key support
     if sys.platform != "win32":
@@ -309,63 +328,15 @@ def install() -> None:
 
         readline.parse_and_bind("tab: complete")
 
-    command = ""
-    continued_command = False
-    while True:
-        try:
-            prompt = "... " if continued_command else ">>> "
-            new_input = input(prompt)
-        except KeyboardInterrupt:
-            print()
-            if continued_command:
-                continued_command = False
-                command = ""
-            continue
-        except EOFError:
-            print()
-            sys.exit(0)
+    zxpy_locals = {
+        **parent_locals,
+        "$run_shell": run_shell,
+        "$run_shell_alternate": run_shell_alternate,
+        "$run_shell_print": run_shell_print,
+        "$shlex_quote": shlex.quote,
+    }
 
-        # TODO: refactor the next 10 lines.
-        # probably move command = '...' stuff somewhere else
-        if continued_command:
-            command += "\n"
-        else:
-            command = ""
-
-        if new_input != "":
-            command += new_input
-        else:
-            continued_command = False
-
-        if continued_command:
-            continue
-
-        try:
-            ast_obj = ast.parse(command, "<input>", "single")
-        except SyntaxError:
-            try:
-                code_obj = code.compile_command(command)
-                if code_obj is None:
-                    continued_command = True
-                    continue
-
-            except BaseException:
-                traceback.print_exc()
-                continue
-
-        assert isinstance(ast_obj, ast.Interactive)
-        patch_shell_commands(ast_obj)
-
-        try:
-            code_obj = compile(ast_obj, "<input>", "single")
-            assert code_obj is not None
-            exec(code_obj)
-
-        except SystemExit as e:
-            sys.exit(e.code)
-
-        except BaseException:
-            traceback.print_exc()
+    ZxpyConsole(locals=zxpy_locals).interact(banner="", exitmsg="")
 
 
 if __name__ == "__main__":
