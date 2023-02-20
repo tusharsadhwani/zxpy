@@ -79,7 +79,8 @@ def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_argv() -> None:
     test_file = "./tests/test_files/argv.py"
-    subprocess.check_call(["zxpy", test_file, "--", "foobar"])
+    returncode = subprocess.check_call(["zxpy", test_file, "--", "foobar"])
+    assert returncode == 0
 
 
 def test_raise() -> None:
