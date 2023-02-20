@@ -104,7 +104,7 @@ def cli() -> None:
             install()
 
 
-def is_inside_single_quotes(string, index):
+def is_inside_single_quotes(string: str, index: int) -> bool:
     """Returns True if the given index is inside single quotes in a shell command."""
     quote_index = string.find("'")
     if quote_index == -1:
