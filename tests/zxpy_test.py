@@ -79,7 +79,7 @@ def test_prints(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_argv() -> None:
     test_file = "./tests/test_files/argv.py"
-    returncode = subprocess.check_call(["zxpy", test_file, "--", "foobar"])
+    returncode = subprocess.check_call(["zxpy", test_file, "--", "foobar", "baz"])
     assert returncode == 0
 
 
@@ -115,3 +115,60 @@ def test_interactive() -> None:
     assert stderr == b'\n'
     outlines = [line for line in stdout.decode().splitlines() if line.startswith('>>>')]
     assert outlines == [">>> hi", ">>> 10", ">>> ... ... ... ... >>> 8", ">>> "]
+
+
+@pytest.mark.parametrize(
+    ("input", "index", "output"),
+    (
+        ("echo 'hello world' hi", 0, False),
+        ("echo 'hello world' hi", 4, False),
+        ("echo 'hello world' hi", 5, True),
+        ("echo 'hello world' hi", 6, True),
+        ("echo 'hello world' hi", 16, True),
+        ("echo 'hello world' hi", 17, True),
+        ("echo 'hello world' hi", 18, False),
+        ("echo 'hello world' hi", 21, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 5, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 8, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 10, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 14, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 17, False),
+        ('abc "def\'ghi" jkl \'mnop\'', 18, True),
+        ('abc "def\'ghi" jkl \'mnop\'', 21, True),
+        ("'a'  'b'  c 'de' 'fg' h", 1, True),
+        ("'a'  'b'  c 'de' 'fg' h", 3, False),
+        ("'a'  'b'  c 'de' 'fg' h", 6, True),
+        ("'a'  'b'  c 'de' 'fg' h", 10, False),
+        ("'a'  'b'  c 'de' 'fg' h", 14, True),
+        ("'a'  'b'  c 'de' 'fg' h", 16, False),
+        ("'a'  'b'  c 'de' 'fg' h", 19, True),
+        ("'a'  'b'  c 'de' 'fg' h", 22, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 1, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 2, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 4, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 6, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 8, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 10, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 12, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 13, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 14, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 15, False),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 16, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 17, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 18, True),
+        ("a \"b'c'd'e\" '\"' '\"abc'", 20, True),
+    ),
+)
+def test_is_inside_single_quotes(input, index, output) -> None:
+    assert zx.is_inside_single_quotes(input, index) == output
+
+
+def test_shell_injection():
+    """Test injecting commands or shell args like `$0` into shell strings."""
+    file = "./tests/test_files/injection.py"
+    output = subprocess.check_output(["zxpy", file, "--", "abc"]).decode()
+    assert output == (
+        "True\n"  # uname -p worked as a string
+        "127\n"  # uname -p inside f-string got quoted
+    )
+    # TODO: $1 injection test

@@ -29,6 +29,8 @@ import code
 import codecs
 import contextlib
 import inspect
+import pipes
+import re
 import shlex
 import subprocess
 import sys
@@ -67,10 +69,11 @@ def cli() -> None:
     # Everything passed after a `--` is arguments to be used by the script itself.
     try:
         separator_index = sys.argv.index('--')
-        script_args = sys.argv[separator_index + 1 :]
-        # Remove everything after -- so that argparse passes
+        script_args = ['/bin/sh'] + sys.argv[separator_index + 1 :]
+        # Remove everything after `--` so that argparse passes
         sys.argv = sys.argv[:separator_index]
     except ValueError:
+        # `--` not present in command
         script_args = []
 
     args = parser.parse_args(namespace=ZxpyArgs())
@@ -100,9 +103,70 @@ def cli() -> None:
             install()
 
 
+def is_inside_single_quotes(string, index):
+    """Returns True if the given index is inside single quotes in a shell command."""
+    quote_index = string.find("'")
+    if quote_index == -1:
+        # No single quotes
+        return False
+
+    if index < quote_index:
+        # We're before the start of the single quotes
+        return False
+
+    double_quote_index = string.find('"')
+    if double_quote_index >= 0 and double_quote_index < quote_index:
+        next_double_quote = string.find('"', double_quote_index + 1)
+        if next_double_quote == -1:
+            # Double quote opened but never closed
+            return False
+
+        # Single quotes didn't start and we passed the index
+        if next_double_quote >= index:
+            return False
+
+        # Ignore all single quotes inside double quotes.
+        index -= next_double_quote + 1
+        rest = string[next_double_quote + 1 :]
+        return is_inside_single_quotes(rest, index)
+
+    next_quote = string.find("'", quote_index + 1)
+    if next_quote >= index:
+        # We're inside single quotes
+        return True
+
+    index -= next_quote + 1
+    rest = string[next_quote + 1 :]
+    return is_inside_single_quotes(rest, index)
+
+
 @contextlib.contextmanager
 def create_shell_process(command: str) -> Generator[IO[bytes], None, None]:
     """Creates a shell process, yielding its stdout to read data from."""
+    # shell argument support, i.e. $0, $1 etc.
+
+    dollar_indices = [index for index, char in enumerate(command) if char == '$']
+    for dollar_index in reversed(dollar_indices):
+        if (
+            dollar_index >= 0
+            and dollar_index + 1 < len(command)
+            and command[dollar_index + 1].isdigit()
+            and not is_inside_single_quotes(command, dollar_index)
+        ):
+            end_index = dollar_index + 1
+            while end_index + 1 < len(command) and command[end_index + 1].isdigit():
+                end_index += 1
+
+            number = int(command[dollar_index + 1 : end_index + 1])
+
+            # Get argument number from sys.argv
+            if number < len(sys.argv):
+                replacement = sys.argv[number]
+            else:
+                replacement = ""
+
+            command = command[:dollar_index] + replacement + command[end_index + 1 :]
+
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
