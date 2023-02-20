@@ -64,10 +64,19 @@ def cli() -> None:
     )
     parser.add_argument('filename', help='Name of file to run', nargs='?')
 
+    # Everything passed after a `--` is arguments to be used by the script itself.
+    try:
+        separator_index = sys.argv.index('--')
+        script_args = sys.argv[separator_index + 1 :]
+        # Remove everything after -- so that argparse passes
+        sys.argv = sys.argv[:separator_index]
+    except ValueError:
+        script_args = []
+
     args = parser.parse_args(namespace=ZxpyArgs())
 
-    # Remove zxpy executable from argv
-    del sys.argv[0]
+    # Once arg parsing is done, replace argv with script args
+    sys.argv = script_args
 
     if args.filename is None:
         setup_zxpy_repl()
