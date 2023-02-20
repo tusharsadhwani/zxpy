@@ -67,14 +67,15 @@ def cli() -> None:
     parser.add_argument('filename', help='Name of file to run', nargs='?')
 
     # Everything passed after a `--` is arguments to be used by the script itself.
+    script_args = ['/bin/sh']
     try:
         separator_index = sys.argv.index('--')
-        script_args = ['/bin/sh'] + sys.argv[separator_index + 1 :]
+        script_args.extend(sys.argv[separator_index + 1 :])
         # Remove everything after `--` so that argparse passes
         sys.argv = sys.argv[:separator_index]
     except ValueError:
-        # `--` not present in command
-        script_args = []
+        # `--` not present in command, so no extra script args
+        pass
 
     args = parser.parse_args(namespace=ZxpyArgs())
 
