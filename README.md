@@ -127,6 +127,43 @@ print(return_code)  # 0
 
 More examples are in the [examples folder](./examples).
 
+## CLI Arguments
+
+When writing a shell script, you often want to pass CLI arguments to it.
+
+Like so:
+
+```console
+$ cat ./foo.sh
+echo arg is: $1
+
+$ ./foo.sh 123
+arg is: 123
+```
+
+To do the same in `zxpy`, pass the script arguments after a `--` in the `zxpy` CLI command.
+
+```python
+#!/usr/bin/env zxpy
+
+import sys
+print("Argv is:", sys.argv)
+
+~"echo output: $1 $2 $3"
+```
+
+```console
+$ ./test.py
+Argv is: ['/bin/sh']
+output:
+
+$ ./test.py -- abc def
+Argv is: ['/bin/sh', 'abc', 'def']
+output: abc def
+```
+
+Both `$1` and `sys.argv[1]` will do the same thing.
+
 ## Quoting
 
 Take this shell command:
