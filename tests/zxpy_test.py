@@ -170,5 +170,9 @@ def test_shell_injection():
     assert output == (
         "True\n"  # uname -p worked as a string
         "127\n"  # uname -p inside f-string got quoted
+        "abc\n"  # $1 works
+        "abc\n"  # "$1" works
+        "$1\n"  # '$1 is printed as-is
+        "$1\n"  # $1 in an f-string gets quoted to '$1'
+        '"$1"\n'  # "$1" in an f-string gets quoted to '"$1"'
     )
-    # TODO: $1 injection test
