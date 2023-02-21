@@ -102,7 +102,7 @@ for filename in test_files:
 
 Output:
 
-```bash
+```console
 $ ./run_all_tests.py
 Running ./tests/python_version_test.py....................Test failed.
 Running ./tests/platform_test.py..........................Test passed!
