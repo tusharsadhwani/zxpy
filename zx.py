@@ -21,6 +21,7 @@ the shebang:
 ...to the top of your file, and executing it directly like a shell
 script. Note that this requires you to have zxpy installed globally.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,8 +30,6 @@ import code
 import codecs
 import contextlib
 import inspect
-import pipes
-import re
 import shlex
 import subprocess
 import sys
@@ -59,17 +58,17 @@ def cli() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-i',
-        '--interactive',
-        action='store_true',
-        help='Run in interactive mode',
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Run in interactive mode",
     )
-    parser.add_argument('filename', help='Name of file to run', nargs='?')
+    parser.add_argument("filename", help="Name of file to run", nargs="?")
 
     # Everything passed after a `--` is arguments to be used by the script itself.
-    script_args = ['/bin/sh']
+    script_args = ["/bin/sh"]
     try:
-        separator_index = sys.argv.index('--')
+        separator_index = sys.argv.index("--")
         script_args.extend(sys.argv[separator_index + 1 :])
         # Remove everything after `--` so that argparse passes
         sys.argv = sys.argv[:separator_index]
@@ -146,7 +145,7 @@ def create_shell_process(command: str) -> Generator[IO[bytes], None, None]:
     """Creates a shell process, yielding its stdout to read data from."""
     # shell argument support, i.e. $0, $1 etc.
 
-    dollar_indices = [index for index, char in enumerate(command) if char == '$']
+    dollar_indices = [index for index, char in enumerate(command) if char == "$"]
     for dollar_index in reversed(dollar_indices):
         if (
             dollar_index >= 0
@@ -194,7 +193,7 @@ def run_shell_print(command: str) -> None:
     """Version of `run_shell` that prints out the response instead of returning a string."""
     with create_shell_process(command) as stdout:
         decoder = UTF8Decoder()
-        with open(stdout.fileno(), 'rb', closefd=False) as buff:
+        with open(stdout.fileno(), "rb", closefd=False) as buff:
             for text in iter(buff.read1, b""):
                 print(decoder.decode(text), end="")
 
@@ -261,12 +260,8 @@ def quote_fstring_args(fstring: ast.JoinedStr) -> None:
             if (
                 isinstance(node.format_spec, ast.JoinedStr)
                 and len(node.format_spec.values) == 1
-                and (
-                    isinstance(node.format_spec.values[0], ast.Str)
-                    and node.format_spec.values[0].s == "raw"
-                    or isinstance(node.format_spec.values[0], ast.Constant)
-                    and node.format_spec.values[0].value == "raw"
-                )
+                and isinstance(node.format_spec.values[0], ast.Constant)
+                and node.format_spec.values[0].value == "raw"
             ):
                 node.format_spec = None
                 continue
@@ -290,7 +285,7 @@ class ShellRunner(ast.NodeTransformer):
         if (
             isinstance(expr, ast.UnaryOp)
             and isinstance(expr.op, ast.Invert)
-            and isinstance(expr.operand, (ast.Str, ast.JoinedStr))
+            and isinstance(expr.operand, (ast.Constant, ast.JoinedStr))
         ):
             if isinstance(expr.operand, ast.JoinedStr):
                 quote_fstring_args(expr.operand)
@@ -362,7 +357,7 @@ class ZxpyConsole(code.InteractiveConsole):
         # First, check if it could be incomplete input, return True if it is.
         # This will allow it to keep taking input
         with contextlib.suppress(SyntaxError, OverflowError):
-            if code.compile_command(source) == None:
+            if code.compile_command(source) is None:
                 return True
 
         try:
